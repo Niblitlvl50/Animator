@@ -7,4 +7,5 @@ bin/
 build/
 CMakeFiles/
 DerivedData/
-Resources/animator_imgui.ini
+animator_imgui.ini
+
