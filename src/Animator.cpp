@@ -33,13 +33,13 @@ namespace
 {
     void SetupIcons(UIContext& context, std::unordered_map<unsigned int, mono::ITexturePtr>& textures)
     {
-        mono::ITexturePtr texture = mono::CreateTexture("textures/animator_tools.png"); 
+        mono::ITexturePtr texture = mono::CreateTexture("res/sprite_atlas.png"); 
         textures.insert(std::make_pair(texture->Id(), texture));
 
-        const mono::ISpritePtr save = mono::CreateSprite("sprites/save.sprite");
-        const mono::ISpritePtr add = mono::CreateSprite("sprites/add.sprite");
-        const mono::ISpritePtr plus = mono::CreateSprite("sprites/plus.sprite");
-        const mono::ISpritePtr remove = mono::CreateSprite("sprites/delete.sprite");
+        const mono::ISpritePtr save = mono::CreateSprite("res/sprites/save.sprite");
+        const mono::ISpritePtr add = mono::CreateSprite("res/sprites/add.sprite");
+        const mono::ISpritePtr plus = mono::CreateSprite("res/sprites/plus.sprite");
+        const mono::ISpritePtr remove = mono::CreateSprite("res/sprites/delete.sprite");
 
         context.tools_texture_id = texture->Id();
         context.save_icon = save->GetTextureCoords();
@@ -106,7 +106,7 @@ Animator::~Animator()
     m_eventHandler.RemoveListener(m_multiGestureToken);
 }
 
-void Animator::OnLoad(mono::ICameraPtr camera)
+void Animator::OnLoad(mono::ICameraPtr& camera)
 {
     m_camera = camera;
     camera->SetPosition(math::zeroVec);

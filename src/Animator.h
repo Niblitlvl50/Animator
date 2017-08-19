@@ -26,7 +26,7 @@ namespace animator
         Animator(System::IWindow* window, mono::EventHandler& eventHandler, const char* sprite_file);
         ~Animator();
 
-        virtual void OnLoad(mono::ICameraPtr camera);
+        virtual void OnLoad(mono::ICameraPtr& camera);
         virtual void OnUnload();
 
         void SetAnimation(int animation_id);

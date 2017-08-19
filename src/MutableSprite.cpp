@@ -8,7 +8,7 @@ using namespace animator;
 MutableSprite::MutableSprite(mono::ISprite& sprite)
     : m_sprite(sprite)
 {
-    mScale = math::Vector(50, 50);
+    m_scale = math::Vector(50, 50);
 }
 
 void MutableSprite::Draw(mono::IRenderer& renderer) const
