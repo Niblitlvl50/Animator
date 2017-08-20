@@ -15,6 +15,10 @@
         "Makefile": true
     },
     "files.associations": {
-        "ios": "cpp"
+        "ios": "cpp",
+        "array": "cpp",
+        "iterator": "cpp",
+        "string": "cpp",
+        "vector": "cpp"
     }
 }
