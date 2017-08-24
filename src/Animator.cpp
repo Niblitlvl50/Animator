@@ -77,7 +77,7 @@ Animator::Animator(System::IWindow* window, mono::EventHandler& eventHandler, co
 
     const System::Size& size = window->Size();
     const math::Vector window_size(size.width, size.height);
-    m_guiRenderer = std::make_shared<ImGuiRenderer>("animator_imgui.ini", window_size, textures);
+    m_guiRenderer = std::make_shared<ImGuiRenderer>(nullptr, window_size, textures);
 
     mono::CreateSprite(m_sprite, sprite_file);
 
