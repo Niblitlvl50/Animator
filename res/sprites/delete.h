@@ -1,3 +1,7 @@
+
+#pragma once
+
+constexpr const char* delete_data = R"(
 {
     "animations": [
         {
@@ -20,3 +24,4 @@
     ],
     "texture": "res/sprite_atlas.png"
 }
+)";

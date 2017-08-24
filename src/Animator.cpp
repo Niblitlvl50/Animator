@@ -27,25 +27,31 @@
 #include "Rendering/Texture/TextureFactory.h"
 #include "WriteSpriteFile.h"
 
+#include "../res/sprite_atlas.h"
+#include "../res/sprites/add.h"
+#include "../res/sprites/delete.h"
+#include "../res/sprites/plus.h"
+#include "../res/sprites/save.h"
+
 using namespace animator;
 
 namespace
 {
     void SetupIcons(UIContext& context, std::unordered_map<unsigned int, mono::ITexturePtr>& textures)
     {
-        mono::ITexturePtr texture = mono::CreateTexture("res/sprite_atlas.png"); 
+        mono::ITexturePtr texture = mono::CreateTextureFromData(sprite_atlas_data, sprite_atlas_data_length);
         textures.insert(std::make_pair(texture->Id(), texture));
 
-        const mono::ISpritePtr save = mono::CreateSprite("res/sprites/save.sprite");
-        const mono::ISpritePtr add = mono::CreateSprite("res/sprites/add.sprite");
-        const mono::ISpritePtr plus = mono::CreateSprite("res/sprites/plus.sprite");
-        const mono::ISpritePtr remove = mono::CreateSprite("res/sprites/delete.sprite");
+        const mono::ISpritePtr add = mono::CreateSpriteFromRaw(add_data);
+        const mono::ISpritePtr del = mono::CreateSpriteFromRaw(delete_data);
+        const mono::ISpritePtr plus = mono::CreateSpriteFromRaw(plus_data);
+        const mono::ISpritePtr save = mono::CreateSpriteFromRaw(save_data);
 
         context.tools_texture_id = texture->Id();
         context.save_icon = save->GetTextureCoords();
         context.add_icon = add->GetTextureCoords();
         context.plus_icon = plus->GetTextureCoords();
-        context.delete_icon = remove->GetTextureCoords();
+        context.delete_icon = del->GetTextureCoords();
     }
 }
 

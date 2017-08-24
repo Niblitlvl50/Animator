@@ -4,6 +4,8 @@ import sys
 import binascii
 from os.path import basename
 
+# Binary
+
 def read_hex_from_file(filename):
     with open(filename, "rb") as file:
         return binascii.hexlify(bytearray(file.read()))
@@ -27,15 +29,48 @@ def write_footer():
     return '\n};\n'
 
 
-input_file = sys.argv[1]
-output_file = os.path.splitext(input_file)[0] + '.h'
-base_filename = os.path.splitext(basename(input_file))[0]
+# Ascii
 
-hex_bytes = read_hex_from_file(input_file)
+def read_ascii_data_from_file(filename):
+    with open(filename, "r") as file:
+        return file.read()
 
-output_string = write_header(base_filename, len(hex_bytes) / 2)
-output_string += write_hex_data(hex_bytes)
-output_string += write_footer()
+def write_ascii_data(variable_name, data):
+    output_string = '\n' \
+        '#pragma once\n\n' \
+        'constexpr const char* ' + variable_name + '_data = R"(\n'
+    
+    output_string += data
+    output_string += ')";\n'
 
-with open(output_file, "w") as output:
-    output.write(output_string)
+    return output_string
+
+def main():
+    if len(sys.argv) < 2:
+        print 'Invalid amoutn of arguments'
+        return
+
+    data_type = sys.argv[1]
+    if data_type != '-binary' and data_type != '-ascii':
+        print 'No data type specified, or unknown: ' + data_type
+        return
+
+    input_file = sys.argv[2]
+    output_file = os.path.splitext(input_file)[0] + '.h'
+    base_filename = os.path.splitext(basename(input_file))[0]
+
+    output_string = ''
+
+    if data_type is '-binary':
+        hex_bytes = read_hex_from_file(input_file)
+        output_string = write_header(base_filename, len(hex_bytes) / 2)
+        output_string += write_hex_data(hex_bytes)
+        output_string += write_footer()
+    else:
+        ascii_data = read_ascii_data_from_file(input_file)
+        output_string = write_ascii_data(base_filename, ascii_data)
+
+    with open(output_file, "w") as output:
+        output.write(output_string)
+
+main()

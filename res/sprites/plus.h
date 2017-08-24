@@ -1,3 +1,7 @@
+
+#pragma once
+
+constexpr const char* plus_data = R"(
 {
     "animations": [
         {
@@ -11,12 +15,13 @@
     ],
     "frames": [
         {
-            "h": 50,
-            "name": "delete",
-            "w": 50,
-            "x": 124,
+            "h": 42,
+            "name": "plus",
+            "w": 42,
+            "x": 178,
             "y": 2
         }
     ],
     "texture": "res/sprite_atlas.png"
 }
+)";
