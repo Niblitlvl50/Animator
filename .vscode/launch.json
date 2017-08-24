@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceRoot}/bin/animator",
-            "args": ["sprites/cacodemon.sprite"],
+            "args": ["res/sprites/add.sprite"],
             "stopAtEntry": false,
             "cwd": "${workspaceRoot}/res",
             "environment": [],
