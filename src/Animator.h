@@ -28,6 +28,7 @@ namespace animator
 
         virtual void OnLoad(mono::ICameraPtr& camera);
         virtual void OnUnload();
+        virtual int ExitCode();
 
         void SetAnimation(int animation_id);
         void UpdateUIContext(int animation_id);

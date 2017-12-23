@@ -124,6 +124,11 @@ void Animator::OnUnload()
     SaveSprite();
 }
 
+int Animator::ExitCode()
+{
+    return 0;
+}
+
 void Animator::SetAnimation(int animation_id)
 {
     const int animations = m_sprite.GetDefinedAnimations();

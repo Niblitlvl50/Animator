@@ -35,7 +35,7 @@ int main(int argc, const char * argv[])
         window->SetBackgroundColor(0.6, 0.6, 0.6);
 
         mono::ICameraPtr camera = std::make_shared<mono::TraceCamera>(300, 200);
-        mono::LoadFont(0, pixelette_data, pixelette_data_length, 10.0f, 1.0f);
+        mono::LoadFontRaw(0, pixelette_data, pixelette_data_length, 10.0f, 1.0f);
 
         mono::Engine engine(window, camera, eventHandler);
         engine.Run(std::make_shared<animator::Animator>(window, eventHandler, file));
