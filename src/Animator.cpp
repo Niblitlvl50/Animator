@@ -33,6 +33,8 @@
 #include "../res/sprites/plus.h"
 #include "../res/sprites/save.h"
 
+#include <cmath>
+
 using namespace animator;
 
 namespace
