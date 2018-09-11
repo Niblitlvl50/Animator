@@ -21,8 +21,6 @@ void animator::WriteSpriteFile(const char* sprite_file, const std::vector<mono::
 
     for(const mono::AnimationSequence& animation : animations)
     {
-        const bool loop = animation.IsLooping();
-
         std::vector<int> values;
 
         for(const mono::Frame& frame : animation.GetFrames())

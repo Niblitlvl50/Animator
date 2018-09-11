@@ -27,8 +27,7 @@ namespace animator
         ~Animator();
 
         virtual void OnLoad(mono::ICameraPtr& camera);
-        virtual void OnUnload();
-        virtual int ExitCode();
+        virtual int OnUnload();
 
         void SetAnimation(int animation_id);
         void UpdateUIContext(int animation_id);
@@ -59,8 +58,8 @@ namespace animator
         mono::EventToken<event::MultiGestureEvent> m_multiGestureToken;
         
         std::shared_ptr<ImGuiRenderer> m_guiRenderer;
+        std::unique_ptr<ImGuiInputHandler> m_input_handler;
 
-        ImGuiInputHandler m_inputHandler;
         UIContext m_context;
 
         mono::ICameraPtr m_camera;

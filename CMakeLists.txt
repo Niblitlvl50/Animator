@@ -14,7 +14,7 @@ set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unused-parameter")
 
 add_subdirectory("Mono1/")
-include_directories("Mono1/MonoEngine" "Mono1/External Libs")
+include_directories("Mono1/MonoEngine" "Mono1/third_party")
 
 # Animation tool
 file(GLOB_RECURSE source_files "src/*.cpp")

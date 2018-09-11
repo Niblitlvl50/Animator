@@ -19,7 +19,7 @@ void InterfaceDrawer::doUpdate(unsigned int delta)
     const int animation_window_height = window_size.y - (padding * 2);
     const int window_x = window_size.x - window_width - padding;
 
-    const ImageCoords& add_icon = QuadToImageCoords(m_context.add_icon);
+    //const ImageCoords& add_icon = QuadToImageCoords(m_context.add_icon);
     const ImageCoords& delete_icon = QuadToImageCoords(m_context.delete_icon);
     const ImageCoords& plus_icon = QuadToImageCoords(m_context.plus_icon);
     const ImageCoords& save_icon = QuadToImageCoords(m_context.save_icon);

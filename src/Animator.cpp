@@ -59,8 +59,7 @@ namespace
 
 Animator::Animator(System::IWindow* window, mono::EventHandler& eventHandler, const char* sprite_file)
     : m_eventHandler(eventHandler),
-      m_spriteFile(sprite_file),
-      m_inputHandler(eventHandler)
+      m_spriteFile(sprite_file)
 {
     using namespace std::placeholders;
     
@@ -90,6 +89,8 @@ Animator::Animator(System::IWindow* window, mono::EventHandler& eventHandler, co
     AddDrawable(m_guiRenderer, 2);
     AddUpdatable(std::make_shared<InterfaceDrawer>(m_context));
 
+    m_input_handler = std::make_unique<ImGuiInputHandler>(eventHandler);
+
     // Setup UI callbacks
     m_context.on_loop_toggle      = std::bind(&Animator::OnLoopToggle, this, _1);
     m_context.on_add_animation    = std::bind(&Animator::OnAddAnimation, this);
@@ -117,17 +118,13 @@ Animator::~Animator()
 void Animator::OnLoad(mono::ICameraPtr& camera)
 {
     m_camera = camera;
-    camera->SetPosition(math::zeroVec);
+    camera->SetPosition(math::ZeroVec);
 }
 
-void Animator::OnUnload()
+int Animator::OnUnload()
 {
     m_camera = nullptr;
     SaveSprite();
-}
-
-int Animator::ExitCode()
-{
     return 0;
 }
 
