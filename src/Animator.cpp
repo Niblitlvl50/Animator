@@ -1,7 +1,6 @@
 
 #include "Animator.h"
 #include "MutableSprite.h"
-#include "SpriteTexture.h"
 
 #include "EventHandler/EventHandler.h"
 #include "Events/EventFuncFwd.h"
@@ -41,7 +40,8 @@ namespace
 {
     void SetupIcons(UIContext& context, std::unordered_map<unsigned int, mono::ITexturePtr>& textures)
     {
-        mono::ITexturePtr texture = mono::CreateTextureFromData(sprite_atlas_data, sprite_atlas_data_length);
+        mono::ITexturePtr texture =
+            mono::CreateTextureFromData(sprite_atlas_data, sprite_atlas_data_length, "res/sprite_atlas.png");
         textures.insert(std::make_pair(texture->Id(), texture));
 
         const mono::ISpritePtr add = mono::CreateSpriteFromRaw(add_data);
@@ -81,11 +81,8 @@ Animator::Animator(System::IWindow* window, mono::EventHandler& eventHandler, co
     m_guiRenderer = std::make_shared<ImGuiRenderer>(nullptr, window_size, textures);
 
     mono::CreateSprite(m_sprite, sprite_file);
-
-    m_sprite_texture = std::make_shared<SpriteTexture>(m_sprite.GetTexture(), m_sprite.GetFullTexureCoords());
     
     AddEntity(std::make_shared<MutableSprite>(m_sprite), 0);
-    AddEntity(m_sprite_texture, 1);
     AddDrawable(m_guiRenderer, 2);
     AddUpdatable(std::make_shared<InterfaceDrawer>(m_context));
 
@@ -161,9 +158,6 @@ bool Animator::OnDownUp(const event::KeyDownEvent& event)
             m_sprite.RestartAnimation();
             return true;
         }
-        case Keycode::TAB:
-            m_sprite_texture->Enable(!m_sprite_texture->Enabled());
-            return true;
         case Keycode::LEFT:
         case Keycode::DOWN:
         {

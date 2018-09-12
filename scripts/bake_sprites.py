@@ -6,7 +6,8 @@ def get_files():
     file_paths = []
     for root, dir, files in os.walk('res/images'):
         for filename in files:
-            file_paths.append(os.path.join(root, filename))
+            if not filename.startswith('.'): # Skip .DS_Store files
+                file_paths.append(os.path.join(root, filename))
 
     return file_paths
 
@@ -18,6 +19,7 @@ arguments = [
     '-bg_color', '255 0 255 0',
     '-trim_images',
     '-sprite_format',
+    "-sprite_folder", "res/sprites/",
     '-output', 'res/sprite_atlas.png'
 ]
 
