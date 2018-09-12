@@ -22,6 +22,6 @@ constexpr const char* save_data = R"(
             "y": 2
         }
     ],
-    "texture": "res/sprite_atlas.png"
+    "texture": "res/animator_sprite_atlas.png"
 }
 )";

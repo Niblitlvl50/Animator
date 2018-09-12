@@ -26,7 +26,7 @@
 #include "Rendering/Texture/TextureFactory.h"
 #include "WriteSpriteFile.h"
 
-#include "../res/sprite_atlas.h"
+#include "../res/animator_sprite_atlas.h"
 #include "../res/sprites/add.h"
 #include "../res/sprites/delete.h"
 #include "../res/sprites/plus.h"
@@ -41,7 +41,7 @@ namespace
     void SetupIcons(UIContext& context, std::unordered_map<unsigned int, mono::ITexturePtr>& textures)
     {
         mono::ITexturePtr texture =
-            mono::CreateTextureFromData(sprite_atlas_data, sprite_atlas_data_length, "res/sprite_atlas.png");
+            mono::CreateTextureFromData(animator_sprite_atlas_data, animator_sprite_atlas_data_length, "res/animator_sprite_atlas.png");
         textures.insert(std::make_pair(texture->Id(), texture));
 
         const mono::ISpritePtr add = mono::CreateSpriteFromRaw(add_data);
