@@ -1,6 +1,7 @@
 
 #include "Animator.h"
 #include "MutableSprite.h"
+#include "SpriteFramesDrawer.h"
 
 #include "EventHandler/EventHandler.h"
 #include "Events/EventFuncFwd.h"
@@ -75,15 +76,16 @@ Animator::Animator(System::IWindow* window, mono::EventHandler& eventHandler, co
 
     std::unordered_map<unsigned int, mono::ITexturePtr> textures;
     SetupIcons(m_context, textures);
+    mono::CreateSprite(m_sprite, sprite_file);
 
     const System::Size& size = window->Size();
     const math::Vector window_size(size.width, size.height);
     m_guiRenderer = std::make_shared<ImGuiRenderer>(nullptr, window_size, textures);
-
-    mono::CreateSprite(m_sprite, sprite_file);
+    m_sprite_frame_drawer = std::make_shared<SpriteFramesDrawer>(m_sprite, window_size);
     
     AddEntity(std::make_shared<MutableSprite>(m_sprite), 0);
     AddDrawable(m_guiRenderer, 2);
+    AddDrawable(m_sprite_frame_drawer, 1);
     AddUpdatable(std::make_shared<InterfaceDrawer>(m_context));
 
     m_input_handler = std::make_unique<ImGuiInputHandler>(eventHandler);

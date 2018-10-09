@@ -57,6 +57,7 @@ namespace animator
         mono::EventToken<event::MouseWheelEvent> m_mouseWheelToken;
         mono::EventToken<event::MultiGestureEvent> m_multiGestureToken;
         
+        std::shared_ptr<class SpriteFramesDrawer> m_sprite_frame_drawer;
         std::shared_ptr<ImGuiRenderer> m_guiRenderer;
         std::unique_ptr<ImGuiInputHandler> m_input_handler;
 

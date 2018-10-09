@@ -6,9 +6,9 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceRoot}/bin/animator",
-            "args": ["res/sprites/add.sprite"],
+            "args": ["res/sprites/save.sprite"],
             "stopAtEntry": false,
-            "cwd": "${workspaceRoot}/res",
+            "cwd": "${workspaceRoot}",
             "environment": [],
             "externalConsole": false,
             "linux": {

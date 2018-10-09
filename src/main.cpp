@@ -28,17 +28,16 @@ int main(int argc, const char * argv[])
     mono::InitializeRender();
 
     {
-        // The "global" event handler used throughout the game
-        mono::EventHandler eventHandler;
+        mono::EventHandler event_handler;
 
         System::IWindow* window = System::CreateWindow("Animator", 0, 0, 1200, 800, false);
         window->SetBackgroundColor(0.6, 0.6, 0.6);
 
         mono::ICameraPtr camera = std::make_shared<mono::TraceCamera>(300, 200);
-        mono::LoadFontRaw(0, pixelette_data, pixelette_data_length, 10.0f, 1.0f);
+        mono::LoadFontRaw(0, pixelette_data, pixelette_data_length, 48.0f, 0.01f);
 
-        mono::Engine engine(window, camera, eventHandler);
-        engine.Run(std::make_shared<animator::Animator>(window, eventHandler, file));
+        mono::Engine engine(window, camera, event_handler);
+        engine.Run(std::make_shared<animator::Animator>(window, event_handler, file));
 
         delete window;
     }
