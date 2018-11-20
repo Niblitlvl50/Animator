@@ -21,7 +21,6 @@ namespace animator
         const char* display_name;
         bool loop_animation;
         int max_frame_id;
-        int active_frame;
         std::vector<mono::Frame>* frames;
 
         std::function<void (bool)> on_loop_toggle;

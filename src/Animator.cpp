@@ -101,7 +101,6 @@ Animator::Animator(System::IWindow* window, mono::EventHandler& eventHandler, co
     m_context.on_save             = std::bind(&Animator::SaveSprite, this);
 
     m_context.max_frame_id = m_sprite.GetUniqueFrames() -1;
-    m_context.active_frame = m_sprite.GetActiveAnimation();
 
     SetAnimation(m_sprite.GetActiveAnimation());
 }
