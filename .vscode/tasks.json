@@ -42,7 +42,17 @@
                 "isDefault": true
             },
             "command": "./bin/animator",
-            "args": ["res/sprites/add.sprite"],
+            "args": [
+                "res/sprites/add.sprite"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "taskName": "deploy",
+            "command": "python",
+            "args": [
+                "scripts/deploy.py"
+            ],
             "problemMatcher": []
         }
     ]
