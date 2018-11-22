@@ -2,16 +2,17 @@
     "python.linting.pylintEnabled": false,
 
     "files.exclude": {
-        "**/.git": true,
-        "**/.svn": true,
-        "**/.hg": true,
         "**/.DS_Store": true,
+        "**/.git": true,
+        "**/.hg": true,
+        "**/.svn": true,
         "**/.vscode": false,
+        "**/*.pyc": true,
         "**/*.VC.db": true,
         "bin/": true,
-        "CMakeFiles": true,
         "cmake_install.cmake": true,
         "CMakeCache.txt": true,
+        "CMakeFiles": true,
         "Makefile": true
     },
     "files.associations": {

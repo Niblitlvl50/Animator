@@ -45,17 +45,11 @@ def write_ascii_data(variable_name, data):
 
     return output_string
 
-def main():
-    if len(sys.argv) < 2:
-        print 'Invalid amoutn of arguments'
-        return
-
-    data_type = sys.argv[1]
+def convert_file(data_type, input_file):
     if data_type != '-binary' and data_type != '-ascii':
         print 'No data type specified, or unknown: ' + data_type
         return
 
-    input_file = sys.argv[2]
     output_file = os.path.splitext(input_file)[0] + '.h'
     base_filename = os.path.splitext(basename(input_file))[0]
 
@@ -73,4 +67,8 @@ def main():
     with open(output_file, "w") as output:
         output.write(output_string)
 
-main()
+if __name__  == "__main__":
+    if len(sys.argv) > 2:
+        convert_file(sys.argv[1], sys.argv[2])
+    else:
+        print 'Invalid amount of arguments'
