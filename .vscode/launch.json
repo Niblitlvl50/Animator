@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "C++ Launch animator",
+            "name": "Animator",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceRoot}/bin/animator",

@@ -4,7 +4,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "taskName": "build",
+            "label": "build",
             "command": "make",
             "args": [
                 "-j8"
@@ -17,7 +17,7 @@
             "problemMatcher": []
         },
         {
-            "taskName": "clean",
+            "label": "clean",
             "command": "make",
             "args": [
                 "clean"
@@ -26,7 +26,7 @@
             "problemMatcher": []
         },
         {
-            "taskName": "cmake",
+            "label": "cmake",
             "command": "cmake",
             "args": [
                 "."
@@ -35,7 +35,7 @@
             "problemMatcher": []
         },
         {
-            "taskName": "run",
+            "label": "run",
             "type": "process",
             "group": {
                 "kind": "test",
@@ -48,7 +48,7 @@
             "problemMatcher": []
         },
         {
-            "taskName": "deploy",
+            "label": "deploy",
             "command": "python",
             "args": [
                 "scripts/deploy.py"
