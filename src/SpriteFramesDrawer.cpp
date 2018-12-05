@@ -25,8 +25,8 @@ void SpriteFramesDrawer::doDraw(mono::IRenderer& renderer) const
 
     for(int frame_index = 0; frame_index < m_sprite.GetUniqueFrames(); ++frame_index)
     {
-        const math::Quad& frame_quad = m_sprite.GetFrame(frame_index);
-        renderer.DrawSprite(frame_quad, offset, m_sprite.GetTexture());
+        const mono::SpriteFrame& sprite_frame = m_sprite.GetFrame(frame_index);
+        renderer.DrawSprite(sprite_frame.texture_coordinates, sprite_frame.size, sprite_frame.center_offset + offset, m_sprite.GetTexture());
 
         const std::string number = std::to_string(frame_index);
         renderer.DrawText(0, number.c_str(), offset + math::Vector(0.0f, -0.75f), true, text_color);

@@ -17,19 +17,25 @@ namespace animator
         math::Quad delete_icon;
 
         int animation_id;
-        int animations;
+        int n_animations;
+        int max_frames;
+        int selected_frame;
+        
         const char* display_name;
         bool loop_animation;
-        int max_frame_id;
         std::vector<mono::Frame>* frames;
 
-        std::function<void (bool)> on_loop_toggle;
-        std::function<void ()> on_add_animation;
-        std::function<void ()> on_delete_animation;
-        std::function<void ()> on_add_frame;
-        std::function<void (int)> on_delete_frame;
-        std::function<void (const char*)> on_name_animation;
-        std::function<void (int)> on_set_animation;
+        std::function<void ()> add_animation;
+        std::function<void ()> delete_animation;
+        std::function<void (int)> set_active_animation;
+
+        // Active animation callbacks
+        std::function<void (const char*)> set_name;
+        std::function<void (bool)> toggle_loop;
+        std::function<void ()> add_frame;
+        std::function<void (int)> delete_frame;
+
+        std::function<void (int)> set_active_frame;
 
         std::function<void ()> on_save;
     };

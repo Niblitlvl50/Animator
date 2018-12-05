@@ -51,28 +51,22 @@ namespace
         const mono::ISpritePtr save = mono::CreateSpriteFromRaw(save_data);
 
         context.tools_texture_id = texture->Id();
-        context.save_icon = save->GetTextureCoords();
-        context.add_icon = add->GetTextureCoords();
-        context.plus_icon = plus->GetTextureCoords();
-        context.delete_icon = del->GetTextureCoords();
+        context.save_icon = save->GetCurrentFrame().texture_coordinates;
+        context.add_icon = add->GetCurrentFrame().texture_coordinates;
+        context.plus_icon = plus->GetCurrentFrame().texture_coordinates;
+        context.delete_icon = del->GetCurrentFrame().texture_coordinates;
     }
 }
 
-Animator::Animator(System::IWindow* window, mono::EventHandler& eventHandler, const char* sprite_file)
-    : m_eventHandler(eventHandler),
-      m_spriteFile(sprite_file)
+Animator::Animator(System::IWindow* window, mono::EventHandler& event_handler, const char* sprite_file)
+    : m_window(window)
+    , m_event_handler(event_handler)
+    , m_sprite_file(sprite_file)
+    , m_offset_mode(false)
+    , m_offset_highlighted(false)
+    , m_moving_offset(false)
 {
     using namespace std::placeholders;
-    
-    const event::KeyDownEventFunc& func = std::bind(&Animator::OnDownUp, this, _1);
-    const event::SurfaceChangedEventFunc& surface_func = std::bind(&Animator::OnSurfaceChanged, this, _1);
-    const event::MouseWheelEventFunc& mouse_wheel = std::bind(&Animator::OnMouseWheel, this, _1);
-    const event::MultiGestureEventFunc& multi_gesture = std::bind(&Animator::OnMultiGesture, this, _1);
-
-    m_keyDownToken = eventHandler.AddListener(func);
-    m_surfaceChangedToken = eventHandler.AddListener(surface_func);
-    m_mouseWheelToken = m_eventHandler.AddListener(mouse_wheel);
-    m_multiGestureToken = m_eventHandler.AddListener(multi_gesture);
 
     std::unordered_map<unsigned int, mono::ITexturePtr> textures;
     SetupIcons(m_context, textures);
@@ -80,37 +74,61 @@ Animator::Animator(System::IWindow* window, mono::EventHandler& eventHandler, co
 
     const System::Size& size = window->Size();
     const math::Vector window_size(size.width, size.height);
-    m_guiRenderer = std::make_shared<ImGuiRenderer>(nullptr, window_size, textures);
+
+    m_gui_renderer = std::make_shared<ImGuiRenderer>(nullptr, window_size, textures);
+    m_input_handler = std::make_unique<ImGuiInputHandler>(event_handler);
+
+    const event::KeyDownEventFunc& key_down_func        = std::bind(&Animator::OnDownUp, this, _1);
+    const event::MouseDownEventFunc& mouse_down_func    = std::bind(&Animator::OnMouseDown, this, _1);
+    const event::MouseUpEventFunc& mouse_up_func        = std::bind(&Animator::OnMouseUp, this, _1);
+    const event::MouseMotionEventFunc& mouse_move_func  = std::bind(&Animator::OnMouseMove, this, _1);
+    const event::SurfaceChangedEventFunc& surface_func  = std::bind(&Animator::OnSurfaceChanged, this, _1);
+    const event::MouseWheelEventFunc& mouse_wheel       = std::bind(&Animator::OnMouseWheel, this, _1);
+    const event::MultiGestureEventFunc& multi_gesture   = std::bind(&Animator::OnMultiGesture, this, _1);
+
+    m_key_down_token = event_handler.AddListener(key_down_func);
+    m_mouse_down_token = event_handler.AddListener(mouse_down_func);
+    m_mouse_up_token = event_handler.AddListener(mouse_up_func);
+    m_mouse_move_token = event_handler.AddListener(mouse_move_func);
+    m_surface_changed_token = event_handler.AddListener(surface_func);
+    m_mouse_wheel_token = event_handler.AddListener(mouse_wheel);
+    m_multi_gesture_token = event_handler.AddListener(multi_gesture);
+
     m_sprite_frame_drawer = std::make_shared<SpriteFramesDrawer>(m_sprite, window_size);
-    
-    AddEntity(std::make_shared<MutableSprite>(m_sprite), 0);
-    AddDrawable(m_guiRenderer, 2);
+    m_sprite_drawer = std::make_shared<MutableSprite>(m_sprite, m_offset_mode, m_offset_highlighted);
+
+    AddEntity(m_sprite_drawer, 0);
     AddDrawable(m_sprite_frame_drawer, 1);
+    AddDrawable(m_gui_renderer, 2);
+
     AddUpdatable(std::make_shared<InterfaceDrawer>(m_context));
 
-    m_input_handler = std::make_unique<ImGuiInputHandler>(eventHandler);
-
     // Setup UI callbacks
-    m_context.on_loop_toggle      = std::bind(&Animator::OnLoopToggle, this, _1);
-    m_context.on_add_animation    = std::bind(&Animator::OnAddAnimation, this);
-    m_context.on_delete_animation = std::bind(&Animator::OnDeleteAnimation, this);
-    m_context.on_add_frame        = std::bind(&Animator::OnAddFrame, this);
-    m_context.on_delete_frame     = std::bind(&Animator::OnDeleteFrame, this, _1);
-    m_context.on_name_animation   = std::bind(&Animator::OnNameAnimation, this, _1);
-    m_context.on_set_animation    = std::bind(&Animator::SetAnimation, this, _1);
-    m_context.on_save             = std::bind(&Animator::SaveSprite, this);
-
-    m_context.max_frame_id = m_sprite.GetUniqueFrames() -1;
+    m_context.toggle_loop           = std::bind(&Animator::OnLoopToggle, this, _1);
+    m_context.add_animation         = std::bind(&Animator::OnAddAnimation, this);
+    m_context.delete_animation      = std::bind(&Animator::OnDeleteAnimation, this);
+    m_context.add_frame             = std::bind(&Animator::OnAddFrame, this);
+    m_context.delete_frame          = std::bind(&Animator::OnDeleteFrame, this, _1);
+    m_context.set_name              = std::bind(&Animator::OnNameAnimation, this, _1);
+    m_context.set_active_animation  = std::bind(&Animator::SetAnimation, this, _1);
+    m_context.set_active_frame      = std::bind(&Animator::SetActiveFrame, this, _1);
+    m_context.on_save               = std::bind(&Animator::SaveSprite, this);
+    
+    m_context.max_frames = m_sprite.GetUniqueFrames();
+    m_context.selected_frame = 0;
 
     SetAnimation(m_sprite.GetActiveAnimation());
 }
 
 Animator::~Animator()
 {
-    m_eventHandler.RemoveListener(m_keyDownToken);
-    m_eventHandler.RemoveListener(m_surfaceChangedToken);
-    m_eventHandler.RemoveListener(m_mouseWheelToken);
-    m_eventHandler.RemoveListener(m_multiGestureToken);
+    m_event_handler.RemoveListener(m_key_down_token);
+    m_event_handler.RemoveListener(m_mouse_down_token);
+    m_event_handler.RemoveListener(m_mouse_up_token);
+    m_event_handler.RemoveListener(m_mouse_move_token);
+    m_event_handler.RemoveListener(m_surface_changed_token);
+    m_event_handler.RemoveListener(m_mouse_wheel_token);
+    m_event_handler.RemoveListener(m_multi_gesture_token);
 }
 
 void Animator::OnLoad(mono::ICameraPtr& camera)
@@ -140,7 +158,7 @@ void Animator::UpdateUIContext(int animation_id)
 {
     mono::AnimationSequence& sequence = m_sprite.GetSequence(animation_id);
 
-    m_context.animations = m_sprite.GetDefinedAnimations();
+    m_context.n_animations = m_sprite.GetDefinedAnimations();
     m_context.animation_id = animation_id;
     m_context.display_name = sequence.GetName();
     m_context.loop_animation = sequence.IsLooping();
@@ -205,6 +223,9 @@ bool Animator::OnDownUp(const event::KeyDownEvent& event)
         case Keycode::NINE:
             animation = 9;
             break;
+        case Keycode::TAB:
+            m_offset_mode = !m_offset_mode;
+            break;
         default:
             break;
     }
@@ -213,6 +234,50 @@ bool Animator::OnDownUp(const event::KeyDownEvent& event)
     {
         SetAnimation(animation);
         return true;
+    }
+
+    return false;
+}
+
+bool Animator::IsHooveringZero(const math::Vector& position) const
+{
+    const System::Size& size = m_window->Size();
+    const float picking_distance = m_camera->GetViewport().mB.x / size.width * 5.0f;
+
+    const float distance_to_zero = math::Length(position - math::ZeroVec);
+    return  (distance_to_zero < picking_distance);
+}
+
+bool Animator::OnMouseDown(const event::MouseDownEvent& event)
+{
+    if(m_offset_mode)
+        m_moving_offset = IsHooveringZero(math::Vector(event.worldX, event.worldY));
+
+    return false;
+}
+
+bool Animator::OnMouseUp(const event::MouseUpEvent& event)
+{
+    if(m_offset_mode)
+        m_moving_offset = false;
+
+    return false;
+}
+
+bool Animator::OnMouseMove(const event::MouseMotionEvent& event)
+{
+    if(!m_offset_mode)
+        return false;
+
+    const math::Vector mouse_position(event.worldX, event.worldY);
+    if(m_moving_offset)
+    {
+        //const mono::SpriteFrame& current_frame = m_sprite.GetCurrentFrame();
+        m_sprite.SetFrameOffset(m_context.selected_frame, mouse_position); // + current_frame.center_offset);
+    }
+    else
+    {
+        m_offset_highlighted = IsHooveringZero(mouse_position);
     }
 
     return false;
@@ -238,7 +303,7 @@ bool Animator::OnMultiGesture(const event::MultiGestureEvent& event)
 bool Animator::OnSurfaceChanged(const event::SurfaceChangedEvent& event)
 {
     if(event.width > 0 && event.height > 0)
-        m_guiRenderer->SetWindowSize(math::Vector(event.width, event.height));
+        m_gui_renderer->SetWindowSize(math::Vector(event.width, event.height));
 
     return false;
 }
@@ -299,8 +364,13 @@ void Animator::Zoom(float multiplier)
     m_camera->SetTargetViewport(quad);
 }
 
+void Animator::SetActiveFrame(int frame)
+{
+    m_context.selected_frame = frame;
+}
+
 void Animator::SaveSprite()
 {
-    WriteSpriteFile(m_spriteFile, m_sprite.GetAnimations());
+    WriteSpriteFile(m_sprite_file, m_sprite.GetAnimations());
 }
 

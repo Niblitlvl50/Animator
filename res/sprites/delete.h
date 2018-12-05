@@ -19,9 +19,15 @@ constexpr const char* delete_data = R"(
             "name": "delete",
             "w": 50,
             "x": 124,
-            "y": 2
+            "x_offset": 0.0,
+            "y": 2,
+            "y_offset": 0.0
         }
     ],
-    "texture": "res/animator_sprite_atlas.png"
+    "texture": "res/animator_sprite_atlas.png",
+    "texture_size": {
+        "h": 512,
+        "w": 512
+    }
 }
 )";
