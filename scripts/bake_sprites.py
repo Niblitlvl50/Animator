@@ -20,7 +20,7 @@ arguments = [
     '-trim_images',
     '-sprite_format',
     "-sprite_folder", "res/sprites/",
-    '-output', 'res/sprite_atlas.png'
+    '-output', 'res/animator_sprite_atlas.png'
 ]
 
 arguments.append('-input')
