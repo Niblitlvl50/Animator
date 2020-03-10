@@ -253,7 +253,7 @@ bool Animator::OnMouseDown(const event::MouseDownEvent& event)
     return false;
 }
 
-bool Animator::OnMouseUp(const event::MouseUpEvent& event)
+bool Animator::OnMouseUp(const event::MouseUpEvent&)
 {
     if(m_offset_mode)
         m_moving_offset = false;

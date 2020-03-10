@@ -8,5 +8,5 @@ bin/
 build/
 CMakeFiles/
 DerivedData/
-animator_imgui.ini
+*.ini
 

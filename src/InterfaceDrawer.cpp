@@ -60,8 +60,8 @@ namespace
 
         for(int index = 0; index < context.n_animations; ++index)
         {
-            char buffer[10] = { 0 };
-            snprintf(buffer, 10, "%i", index);
+            char buffer[32] = { 0 };
+            snprintf(buffer, 32, "%i", index);
 
             const ImVec4& color = (index == context.animation_id) ? hovered_color : default_color;
 
@@ -146,8 +146,8 @@ namespace
 
         for(int index = 0; index < context.max_frames; ++index)
         {
-            char buffer[10] = { 0 };
-            snprintf(buffer, 10, "%i", index);
+            char buffer[32] = { 0 };
+            snprintf(buffer, 32, "%i", index);
 
             const ImVec4& color = (index == context.selected_frame) ? hovered_color : default_color;
 
