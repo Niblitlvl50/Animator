@@ -1,5 +1,6 @@
 
 #include "System/System.h"
+#include "SystemContext.h"
 #include "Rendering/RenderSystem.h"
 
 #include "Camera/TraceCamera.h"
@@ -24,8 +25,12 @@ int main(int argc, const char * argv[])
     // This is assumed to be the file argument
     const char* file = argv[1];
 
-    System::Initialize();
-    mono::InitializeRender();
+    System::InitializeContext init_context;
+    init_context.working_directory = ".";
+    System::Initialize(init_context);
+
+    mono::RenderInitParams render_params;
+    mono::InitializeRender(render_params);
 
     {
         mono::EventHandler event_handler;
@@ -35,9 +40,13 @@ int main(int argc, const char * argv[])
 
         mono::ICameraPtr camera = std::make_shared<mono::TraceCamera>(12, 8);
         mono::LoadFontRaw(0, pixelette_data, pixelette_data_length, 48.0f, 0.01f);
+        mono::LoadFontRaw(1, pixelette_data, pixelette_data_length, 48.0f, 0.05f);
 
-        mono::Engine engine(window, camera, event_handler);
-        engine.Run(std::make_shared<animator::Animator>(window, event_handler, file));
+        mono::SystemContext system_context;
+
+        animator::Animator animator(window, event_handler, file);
+        mono::Engine engine(window, camera, &system_context, &event_handler);
+        engine.Run(&animator);
 
         delete window;
     }

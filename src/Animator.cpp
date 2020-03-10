@@ -10,7 +10,7 @@
 #include "Events/MultiGestureEvent.h"
 #include "Events/SurfaceChangedEvent.h"
 
-#include "Rendering/ICamera.h"
+#include "Camera/ICamera.h"
 
 #include "Math/Vector.h"
 #include "Math/Quad.h"
@@ -23,8 +23,9 @@
 #include "Rendering/Sprite/SpriteFactory.h"
 #include "Rendering/Sprite/AnimationSequence.h"
 
+#include "Rendering/ImGui.h"
 #include "Rendering/Texture/ITexture.h"
-#include "Rendering/Texture/TextureFactory.h"
+#include "Rendering/Texture/ITextureFactory.h"
 #include "WriteSpriteFile.h"
 
 #include "../res/animator_sprite_atlas.h"
@@ -39,16 +40,20 @@ using namespace animator;
 
 namespace
 {
-    void SetupIcons(UIContext& context, std::unordered_map<unsigned int, mono::ITexturePtr>& textures)
+    void SetupIcons(UIContext& context)
     {
-        mono::ITexturePtr texture =
-            mono::CreateTextureFromData(animator_sprite_atlas_data, animator_sprite_atlas_data_length, "res/animator_sprite_atlas.png");
-        textures.insert(std::make_pair(texture->Id(), texture));
+        const mono::ITextureFactory* texture_factory = mono::GetTextureFactory();
 
-        const mono::ISpritePtr add = mono::CreateSpriteFromRaw(add_data);
-        const mono::ISpritePtr del = mono::CreateSpriteFromRaw(delete_data);
-        const mono::ISpritePtr plus = mono::CreateSpriteFromRaw(plus_data);
-        const mono::ISpritePtr save = mono::CreateSpriteFromRaw(save_data);
+        mono::ITexturePtr texture =
+            texture_factory->CreateTextureFromData(animator_sprite_atlas_data, animator_sprite_atlas_data_length, "res/animator_sprite_atlas.png");
+        mono::LoadImGuiTexture(texture);
+
+        const mono::ISpriteFactory* sprite_factory = mono::GetSpriteFactory();
+
+        const mono::ISpritePtr add = sprite_factory->CreateSpriteFromRaw(add_data);
+        const mono::ISpritePtr del = sprite_factory->CreateSpriteFromRaw(delete_data);
+        const mono::ISpritePtr plus = sprite_factory->CreateSpriteFromRaw(plus_data);
+        const mono::ISpritePtr save = sprite_factory->CreateSpriteFromRaw(save_data);
 
         context.tools_texture_id = texture->Id();
         context.save_icon = save->GetCurrentFrame().texture_coordinates;
@@ -68,21 +73,10 @@ Animator::Animator(System::IWindow* window, mono::EventHandler& event_handler, c
 {
     using namespace std::placeholders;
 
-    std::unordered_map<unsigned int, mono::ITexturePtr> textures;
-    SetupIcons(m_context, textures);
-    mono::CreateSprite(m_sprite, sprite_file);
-
-    const System::Size& size = window->Size();
-    const math::Vector window_size(size.width, size.height);
-
-    m_gui_renderer = std::make_shared<ImGuiRenderer>(nullptr, window_size, textures);
-    m_input_handler = std::make_unique<ImGuiInputHandler>(event_handler);
-
     const event::KeyDownEventFunc& key_down_func        = std::bind(&Animator::OnDownUp, this, _1);
     const event::MouseDownEventFunc& mouse_down_func    = std::bind(&Animator::OnMouseDown, this, _1);
     const event::MouseUpEventFunc& mouse_up_func        = std::bind(&Animator::OnMouseUp, this, _1);
     const event::MouseMotionEventFunc& mouse_move_func  = std::bind(&Animator::OnMouseMove, this, _1);
-    const event::SurfaceChangedEventFunc& surface_func  = std::bind(&Animator::OnSurfaceChanged, this, _1);
     const event::MouseWheelEventFunc& mouse_wheel       = std::bind(&Animator::OnMouseWheel, this, _1);
     const event::MultiGestureEventFunc& multi_gesture   = std::bind(&Animator::OnMultiGesture, this, _1);
 
@@ -90,18 +84,8 @@ Animator::Animator(System::IWindow* window, mono::EventHandler& event_handler, c
     m_mouse_down_token = event_handler.AddListener(mouse_down_func);
     m_mouse_up_token = event_handler.AddListener(mouse_up_func);
     m_mouse_move_token = event_handler.AddListener(mouse_move_func);
-    m_surface_changed_token = event_handler.AddListener(surface_func);
     m_mouse_wheel_token = event_handler.AddListener(mouse_wheel);
     m_multi_gesture_token = event_handler.AddListener(multi_gesture);
-
-    m_sprite_frame_drawer = std::make_shared<SpriteFramesDrawer>(m_sprite, window_size);
-    m_sprite_drawer = std::make_shared<MutableSprite>(m_sprite, m_offset_mode, m_offset_highlighted);
-
-    AddEntity(m_sprite_drawer, 0);
-    AddDrawable(m_sprite_frame_drawer, 1);
-    AddDrawable(m_gui_renderer, 2);
-
-    AddUpdatable(std::make_shared<InterfaceDrawer>(m_context));
 
     // Setup UI callbacks
     m_context.toggle_loop           = std::bind(&Animator::OnLoopToggle, this, _1);
@@ -113,11 +97,6 @@ Animator::Animator(System::IWindow* window, mono::EventHandler& event_handler, c
     m_context.set_active_animation  = std::bind(&Animator::SetAnimation, this, _1);
     m_context.set_active_frame      = std::bind(&Animator::SetActiveFrame, this, _1);
     m_context.on_save               = std::bind(&Animator::SaveSprite, this);
-    
-    m_context.max_frames = m_sprite.GetUniqueFrames();
-    m_context.selected_frame = 0;
-
-    SetAnimation(m_sprite.GetActiveAnimation());
 }
 
 Animator::~Animator()
@@ -126,7 +105,6 @@ Animator::~Animator()
     m_event_handler.RemoveListener(m_mouse_down_token);
     m_event_handler.RemoveListener(m_mouse_up_token);
     m_event_handler.RemoveListener(m_mouse_move_token);
-    m_event_handler.RemoveListener(m_surface_changed_token);
     m_event_handler.RemoveListener(m_mouse_wheel_token);
     m_event_handler.RemoveListener(m_multi_gesture_token);
 }
@@ -135,6 +113,25 @@ void Animator::OnLoad(mono::ICameraPtr& camera)
 {
     m_camera = camera;
     camera->SetPosition(math::ZeroVec);
+
+    SetupIcons(m_context);
+    mono::GetSpriteFactory()->CreateSprite(m_sprite, m_sprite_file);
+
+    m_context.max_frames = m_sprite.GetUniqueFrames();
+    m_context.selected_frame = 0;
+
+    SetAnimation(m_sprite.GetActiveAnimation());
+
+    const System::Size& size = m_window->Size();
+    const math::Vector window_size(size.width, size.height);
+
+    m_input_handler = std::make_unique<ImGuiInputHandler>(m_event_handler);
+    m_sprite_frame_drawer = std::make_shared<SpriteFramesDrawer>(m_sprite, window_size);
+    m_sprite_drawer = std::make_shared<MutableSprite>(m_sprite, m_offset_mode, m_offset_highlighted);
+
+    AddEntity(m_sprite_drawer, 0);
+    AddDrawable(m_sprite_frame_drawer, 1);
+    AddUpdatable(std::make_shared<InterfaceDrawer>(m_context));
 }
 
 int Animator::OnUnload()
@@ -298,14 +295,6 @@ bool Animator::OnMultiGesture(const event::MultiGestureEvent& event)
     const float multiplier = (event.distance < 0.0f) ? 1.0f : -1.0f;
     Zoom(multiplier);
     return true;
-}
-
-bool Animator::OnSurfaceChanged(const event::SurfaceChangedEvent& event)
-{
-    if(event.width > 0 && event.height > 0)
-        m_gui_renderer->SetWindowSize(math::Vector(event.width, event.height));
-
-    return false;
 }
 
 void Animator::OnLoopToggle(bool state)

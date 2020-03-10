@@ -6,12 +6,12 @@
 
 void animator::WriteSpriteFile(const char* sprite_file, const std::vector<mono::AnimationSequence>& animations)
 {
-    File::FilePtr input_file = File::OpenAsciiFile(sprite_file);
+    file::FilePtr input_file = file::OpenAsciiFile(sprite_file);
     if(!input_file)
         return;
 
     std::vector<byte> file_data;
-    File::FileRead(input_file, file_data);
+    file::FileRead(input_file, file_data);
 
     input_file = nullptr;
 
@@ -38,6 +38,6 @@ void animator::WriteSpriteFile(const char* sprite_file, const std::vector<mono::
     }
 
     const std::string& serialized_sprite = json.dump(4);
-    File::FilePtr output_file = File::CreateAsciiFile(sprite_file);
+    file::FilePtr output_file = file::CreateAsciiFile(sprite_file);
     std::fwrite(serialized_sprite.data(), serialized_sprite.length(), sizeof(char), output_file.get());
 }

@@ -167,9 +167,9 @@ InterfaceDrawer::InterfaceDrawer(UIContext& context)
     : m_context(context)
 { }
 
-void InterfaceDrawer::doUpdate(unsigned int delta)
+void InterfaceDrawer::doUpdate(const mono::UpdateContext& update_context)
 {
-    ImGui::GetIO().DeltaTime = float(delta) / 1000.0f;
+    ImGui::GetIO().DeltaTime = float(update_context.delta_ms) / 1000.0f;
     ImGui::NewFrame();
 
     DrawAnimationWindow(m_context);

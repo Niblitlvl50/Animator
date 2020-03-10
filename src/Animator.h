@@ -10,7 +10,6 @@
 #include "Rendering/Sprite/Sprite.h"
 
 #include "ImGuiImpl/ImGuiInputHandler.h"
-#include "ImGuiImpl/ImGuiRenderer.h"
 
 #include <memory>
 
@@ -35,8 +34,7 @@ namespace animator
         bool OnMouseMove(const event::MouseMotionEvent& event);
         bool OnMouseWheel(const event::MouseWheelEvent& event);
         bool OnMultiGesture(const event::MultiGestureEvent& event);
-        bool OnSurfaceChanged(const event::SurfaceChangedEvent& event);
-        
+
         void OnLoopToggle(bool state);
         void OnAddAnimation();
         void OnDeleteAnimation();
@@ -60,13 +58,11 @@ namespace animator
         mono::EventToken<event::MouseDownEvent> m_mouse_down_token;
         mono::EventToken<event::MouseUpEvent> m_mouse_up_token;
         mono::EventToken<event::MouseMotionEvent> m_mouse_move_token;
-        mono::EventToken<event::SurfaceChangedEvent> m_surface_changed_token;
         mono::EventToken<event::MouseWheelEvent> m_mouse_wheel_token;
         mono::EventToken<event::MultiGestureEvent> m_multi_gesture_token;
         
         std::shared_ptr<class SpriteFramesDrawer> m_sprite_frame_drawer;
         std::shared_ptr<class MutableSprite> m_sprite_drawer;
-        std::shared_ptr<ImGuiRenderer> m_gui_renderer;
         std::unique_ptr<ImGuiInputHandler> m_input_handler;
 
         UIContext m_context;

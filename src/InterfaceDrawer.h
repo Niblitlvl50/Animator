@@ -12,7 +12,7 @@ namespace animator
     public:
 
         InterfaceDrawer(UIContext& context);
-        virtual void doUpdate(unsigned int delta);
+        void doUpdate(const mono::UpdateContext& update_context) override;
 
     private:
 

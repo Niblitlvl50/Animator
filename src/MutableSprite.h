@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Entity/EntityBase.h"
+#include "Zone/EntityBase.h"
 #include "Rendering/RenderPtrFwd.h"
 
 namespace animator
@@ -12,8 +12,8 @@ namespace animator
 
         MutableSprite(mono::ISprite& sprite, bool& draw_cross, bool& highlighted);
 
-        virtual void Draw(mono::IRenderer& renderer) const;
-        virtual void Update(unsigned int delta);
+        virtual void Draw(mono::IRenderer& renderer) const override;
+        virtual void Update(const mono::UpdateContext& update_context) override;
 
     private:
 

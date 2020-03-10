@@ -41,9 +41,9 @@
                 "kind": "test",
                 "isDefault": true
             },
-            "command": "./bin/animator",
+            "command": "./bin/animator.app/Contents/MacOS/animator",
             "args": [
-                "res/sprites/add.sprite"
+                "res/sprites/cacodemon.sprite"
             ],
             "problemMatcher": []
         },

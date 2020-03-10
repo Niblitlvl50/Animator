@@ -34,7 +34,7 @@ void MutableSprite::Draw(mono::IRenderer& renderer) const
     }
 }
 
-void MutableSprite::Update(unsigned int delta)
+void MutableSprite::Update(const mono::UpdateContext& update_context)
 {
-    m_sprite.doUpdate(delta);
+    m_sprite.doUpdate(update_context);
 }
