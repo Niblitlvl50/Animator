@@ -104,7 +104,7 @@ namespace
 
         for(size_t index = 0; index < context.frames->size(); ++index)
         {
-            mono::Frame& frame = context.frames->at(index);
+            mono::SpriteAnimation::Frame& frame = context.frames->at(index);
 
             ImGui::Spacing();
 
@@ -167,7 +167,7 @@ InterfaceDrawer::InterfaceDrawer(UIContext& context)
     : m_context(context)
 { }
 
-void InterfaceDrawer::doUpdate(const mono::UpdateContext& update_context)
+void InterfaceDrawer::Update(const mono::UpdateContext& update_context)
 {
     ImGui::GetIO().DeltaTime = float(update_context.delta_ms) / 1000.0f;
     ImGui::NewFrame();

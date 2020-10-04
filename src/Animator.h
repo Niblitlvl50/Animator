@@ -7,7 +7,6 @@
 #include "EventHandler/EventToken.h"
 #include "Events/EventFwd.h"
 #include "UIContext.h"
-#include "Rendering/Sprite/Sprite.h"
 
 #include "ImGuiImpl/ImGuiInputHandler.h"
 
@@ -19,21 +18,27 @@ namespace animator
     {
     public:
 
-        Animator(System::IWindow* window, mono::EventHandler& event_handler, const char* sprite_file);
+        Animator(
+            System::IWindow* window,
+            mono::TransformSystem* transform_system,
+            mono::SpriteSystem* sprite_system,
+            mono::EntitySystem* entity_system,
+            mono::EventHandler* event_handler,
+            const char* sprite_file);
         ~Animator();
 
-        virtual void OnLoad(mono::ICameraPtr& camera);
-        virtual int OnUnload();
+        void OnLoad(mono::ICamera* camera) override;
+        int OnUnload() override;
 
         void SetAnimation(int animation_id);
         void UpdateUIContext(int animation_id);
 
-        bool OnDownUp(const event::KeyDownEvent& event);
-        bool OnMouseDown(const event::MouseDownEvent& event);
-        bool OnMouseUp(const event::MouseUpEvent& event);
-        bool OnMouseMove(const event::MouseMotionEvent& event);
-        bool OnMouseWheel(const event::MouseWheelEvent& event);
-        bool OnMultiGesture(const event::MultiGestureEvent& event);
+        mono::EventResult OnDownUp(const event::KeyDownEvent& event);
+        mono::EventResult OnMouseDown(const event::MouseDownEvent& event);
+        mono::EventResult OnMouseUp(const event::MouseUpEvent& event);
+        mono::EventResult OnMouseMove(const event::MouseMotionEvent& event);
+        mono::EventResult OnMouseWheel(const event::MouseWheelEvent& event);
+        mono::EventResult OnMultiGesture(const event::MultiGestureEvent& event);
 
         void OnLoopToggle(bool state);
         void OnAddAnimation();
@@ -51,7 +56,10 @@ namespace animator
         bool IsHooveringZero(const math::Vector& position) const;
 
         System::IWindow* m_window;
-        mono::EventHandler& m_event_handler;
+        mono::TransformSystem* m_transform_system;
+        mono::SpriteSystem* m_sprite_system;
+        mono::EntitySystem* m_entity_system;
+        mono::EventHandler* m_event_handler;
         const char* m_sprite_file;
 
         mono::EventToken<event::KeyDownEvent> m_key_down_token;
@@ -60,15 +68,15 @@ namespace animator
         mono::EventToken<event::MouseMotionEvent> m_mouse_move_token;
         mono::EventToken<event::MouseWheelEvent> m_mouse_wheel_token;
         mono::EventToken<event::MultiGestureEvent> m_multi_gesture_token;
-        
-        std::shared_ptr<class SpriteFramesDrawer> m_sprite_frame_drawer;
-        std::shared_ptr<class MutableSprite> m_sprite_drawer;
+
         std::unique_ptr<ImGuiInputHandler> m_input_handler;
 
         UIContext m_context;
 
-        mono::ICameraPtr m_camera;
-        mono::Sprite m_sprite;
+        mono::ICamera* m_camera;
+        mono::SpriteData* m_sprite_data;
+        mono::ISprite* m_sprite;
+
         bool m_offset_mode;
         bool m_offset_highlighted;
         bool m_moving_offset;

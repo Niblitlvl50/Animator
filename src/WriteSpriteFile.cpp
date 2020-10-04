@@ -1,10 +1,10 @@
 
 #include "WriteSpriteFile.h"
 #include "System/File.h"
-#include "Rendering/Sprite/AnimationSequence.h"
+
 #include "nlohmann/json.hpp"
 
-void animator::WriteSpriteFile(const char* sprite_file, const std::vector<mono::AnimationSequence>& animations)
+void animator::WriteSpriteFile(const char* sprite_file, const std::vector<mono::SpriteAnimation>& animations)
 {
     file::FilePtr input_file = file::OpenAsciiFile(sprite_file);
     if(!input_file)
@@ -19,19 +19,19 @@ void animator::WriteSpriteFile(const char* sprite_file, const std::vector<mono::
     nlohmann::json& json_animations = json["animations"];
     json_animations.clear();
 
-    for(const mono::AnimationSequence& animation : animations)
+    for(const mono::SpriteAnimation& animation : animations)
     {
         std::vector<int> values;
 
-        for(const mono::Frame& frame : animation.GetFrames())
+        for(const mono::SpriteAnimation::Frame& frame : animation.frames)
         {
             values.push_back(frame.frame);
             values.push_back(frame.duration);
         }
 
         nlohmann::json object;
-        object["name"] = animation.GetName();
-        object["loop"] = animation.IsLooping();
+        object["name"] = animation.name;
+        object["loop"] = animation.looping;
         object["frames"] = values;
 
         json_animations.push_back(object);

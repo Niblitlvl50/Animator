@@ -15,8 +15,9 @@ SpriteFramesDrawer::SpriteFramesDrawer(mono::Sprite& sprite, const math::Vector&
     , m_window_size(window_size)
 { }
 
-void SpriteFramesDrawer::doDraw(mono::IRenderer& renderer) const
+void SpriteFramesDrawer::Draw(mono::IRenderer& renderer) const
 {
+    /*
     const float ppm = 2.0f; //renderer.PixelsPerMeter();
     const float spacing = 2.5f / ppm;
 
@@ -51,7 +52,7 @@ void SpriteFramesDrawer::doDraw(mono::IRenderer& renderer) const
         const float half_size = sprite_frame.size.x / 2.0f / ppm;
 
         offset.x += half_size;
-        renderer.DrawSprite(sprite_frame.texture_coordinates, sprite_frame.size, offset, m_sprite.GetTexture());
+        renderer.DrawSprite(sprite_frame.texture_coordinates, sprite_frame.size, offset, m_sprite.GetTexture().get());
 
         const std::string& number = std::to_string(frame_index);
         constexpr mono::Color::RGBA text_color(0.0f, 0.8f, 1.0f);
@@ -59,6 +60,7 @@ void SpriteFramesDrawer::doDraw(mono::IRenderer& renderer) const
 
         offset.x += (half_size + spacing);
     }
+    */
 }
 
 math::Quad SpriteFramesDrawer::BoundingBox() const

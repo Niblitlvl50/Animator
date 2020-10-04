@@ -12,8 +12,8 @@ namespace animator
 
         MutableSprite(mono::ISprite& sprite, bool& draw_cross, bool& highlighted);
 
-        virtual void Draw(mono::IRenderer& renderer) const override;
-        virtual void Update(const mono::UpdateContext& update_context) override;
+        void EntityDraw(mono::IRenderer& renderer) const override;
+        void EntityUpdate(const mono::UpdateContext& update_context) override;
 
     private:
 

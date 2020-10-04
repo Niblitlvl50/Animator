@@ -5,17 +5,12 @@
 
 namespace animator
 {
-    struct UIContext;
-
     class InterfaceDrawer : public mono::IUpdatable
     {
     public:
 
-        InterfaceDrawer(UIContext& context);
-        void doUpdate(const mono::UpdateContext& update_context) override;
-
-    private:
-
-        UIContext& m_context;
+        InterfaceDrawer(struct UIContext& context);
+        void Update(const mono::UpdateContext& update_context) override;
+        struct UIContext& m_context;
     };
 }

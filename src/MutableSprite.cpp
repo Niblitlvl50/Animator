@@ -12,7 +12,7 @@ MutableSprite::MutableSprite(mono::ISprite& sprite, bool& draw_cross, bool& high
     , m_highlighted_cross(highlighted)
 { }
 
-void MutableSprite::Draw(mono::IRenderer& renderer) const
+void MutableSprite::EntityDraw(mono::IRenderer& renderer) const
 {
     constexpr mono::Color::RGBA default_color(1.0f, 0.0f, 0.0f);
     constexpr mono::Color::RGBA color_highlighted(0.0f, 0.5f, 1.0f, 1.0f);
@@ -34,7 +34,7 @@ void MutableSprite::Draw(mono::IRenderer& renderer) const
     }
 }
 
-void MutableSprite::Update(const mono::UpdateContext& update_context)
+void MutableSprite::EntityUpdate(const mono::UpdateContext& update_context)
 {
-    m_sprite.doUpdate(update_context);
+    m_sprite.Update(update_context);
 }

@@ -17,7 +17,7 @@ namespace animator
 
         SpriteFramesDrawer(mono::Sprite& sprite, const math::Vector& window_size);
 
-        void doDraw(mono::IRenderer& renderer) const override;
+        void Draw(mono::IRenderer& renderer) const override;
         math::Quad BoundingBox() const override;
 
         const mono::Sprite& m_sprite;
