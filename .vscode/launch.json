@@ -5,7 +5,6 @@
             "name": "Animator",
             "type": "cppdbg",
             "request": "launch",
-            //"program": "${workspaceRoot}/bin/animator",
             "program": "${workspaceRoot}/bin/animator.app/Contents/MacOS/animator",
             "args": [
                 "res/sprites/cacodemon.sprite"
