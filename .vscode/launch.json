@@ -5,8 +5,12 @@
             "name": "Animator",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/bin/animator",
-            "args": ["res/sprites/save.sprite"],
+            //"program": "${workspaceRoot}/bin/animator",
+            "program": "${workspaceRoot}/bin/animator.app/Contents/MacOS/animator",
+            "args": [
+                "res/sprites/cacodemon.sprite"
+                //"res/sprites/save.sprite"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceRoot}",
             "environment": [],
