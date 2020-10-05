@@ -1,5 +1,6 @@
 
 #include "System/System.h"
+#include "System/File.h"
 #include "System/UID.h"
 
 #include "SystemContext.h"
@@ -18,16 +19,21 @@
 
 #include <cstdio>
 
-int main(int argc, const char * argv[])
+int main(int argc, const char* argv[])
 {
     if(argc < 2)
     {
         std::printf("You need to supply an argument\n");
-        return 1;
+        return 0;
     }
 
     // This is assumed to be the file argument
     const char* sprite_file = argv[1];
+    if(!file::Exists(sprite_file))
+    {
+        std::printf("Unable to find the file '%s'.\n", sprite_file);
+        return 0;
+    }
 
     constexpr size_t max_entities = 500;
 
