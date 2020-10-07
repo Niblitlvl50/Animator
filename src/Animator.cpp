@@ -1,7 +1,7 @@
 
 #include "Animator.h"
-#include "MutableSprite.h"
 #include "SpriteFramesDrawer.h"
+#include "SpriteOffsetDrawer.h"
 
 #include "EventHandler/EventHandler.h"
 #include "Events/EventFuncFwd.h"
@@ -9,6 +9,7 @@
 #include "Events/MouseEvent.h"
 #include "Events/MultiGestureEvent.h"
 #include "Events/SurfaceChangedEvent.h"
+#include "Events/TimeScaleEvent.h"
 
 #include "Camera/ICamera.h"
 
@@ -86,19 +87,8 @@ Animator::Animator(
 {
     using namespace std::placeholders;
 
-    const event::KeyDownEventFunc& key_down_func        = std::bind(&Animator::OnDownUp, this, _1);
-    const event::MouseDownEventFunc& mouse_down_func    = std::bind(&Animator::OnMouseDown, this, _1);
-    const event::MouseUpEventFunc& mouse_up_func        = std::bind(&Animator::OnMouseUp, this, _1);
-    const event::MouseMotionEventFunc& mouse_move_func  = std::bind(&Animator::OnMouseMove, this, _1);
-    const event::MouseWheelEventFunc& mouse_wheel       = std::bind(&Animator::OnMouseWheel, this, _1);
-    const event::MultiGestureEventFunc& multi_gesture   = std::bind(&Animator::OnMultiGesture, this, _1);
-
-    m_key_down_token = m_event_handler->AddListener(key_down_func);
-    m_mouse_down_token = m_event_handler->AddListener(mouse_down_func);
-    m_mouse_up_token = m_event_handler->AddListener(mouse_up_func);
-    m_mouse_move_token = m_event_handler->AddListener(mouse_move_func);
-    m_mouse_wheel_token = m_event_handler->AddListener(mouse_wheel);
-    m_multi_gesture_token = m_event_handler->AddListener(multi_gesture);
+    m_context.update_speed = 1.0f;
+    m_context.offset_mode = m_offset_mode;
 
     // Setup UI callbacks
     m_context.toggle_loop           = std::bind(&Animator::OnLoopToggle, this, _1);
@@ -110,6 +100,8 @@ Animator::Animator(
     m_context.set_active_animation  = std::bind(&Animator::SetAnimation, this, _1);
     m_context.set_active_frame      = std::bind(&Animator::SetActiveFrame, this, _1);
     m_context.on_save               = std::bind(&Animator::SaveSprite, this);
+    m_context.set_speed             = std::bind(&Animator::SetSpeed, this, _1);
+    m_context.toggle_offset_mode    = std::bind(&Animator::ToggleOffsetMode, this);
 }
 
 Animator::~Animator()
@@ -125,7 +117,9 @@ Animator::~Animator()
 void Animator::OnLoad(mono::ICamera* camera)
 {
     m_camera = camera;
-    m_camera->SetViewport(math::Quad(0.0f, 0.0f, 12.0f, 8.0f));
+
+    const math::Quad viewport(0.0f, 0.0f, 10.0f, 7.0f);
+    m_camera->SetViewport(viewport);
 
     SetupIcons(m_context);
 
@@ -138,14 +132,33 @@ void Animator::OnLoad(mono::ICamera* camera)
     m_sprite = m_sprite_system->AllocateSprite(entity->id, sprite_component);
 
     math::Matrix& sprite_transform = m_transform_system->GetTransform(entity->id);
-    math::Position(sprite_transform, math::Vector(6.0f, 4.0f));
+    math::Position(sprite_transform, math::Center(viewport));
 
     m_context.max_frames = m_sprite_data->frames.size();
     m_context.selected_frame = 0;
     SetAnimation(m_sprite->GetActiveAnimation());
 
     m_input_handler = std::make_unique<ImGuiInputHandler>(*m_event_handler);
+
+    using namespace std::placeholders;
+
+    const event::KeyDownEventFunc& key_down_func        = std::bind(&Animator::OnDownUp, this, _1);
+    const event::MouseDownEventFunc& mouse_down_func    = std::bind(&Animator::OnMouseDown, this, _1);
+    const event::MouseUpEventFunc& mouse_up_func        = std::bind(&Animator::OnMouseUp, this, _1);
+    const event::MouseMotionEventFunc& mouse_move_func  = std::bind(&Animator::OnMouseMove, this, _1);
+    const event::MouseWheelEventFunc& mouse_wheel       = std::bind(&Animator::OnMouseWheel, this, _1);
+    const event::MultiGestureEventFunc& multi_gesture   = std::bind(&Animator::OnMultiGesture, this, _1);
+
+    m_key_down_token = m_event_handler->AddListener(key_down_func);
+    m_mouse_down_token = m_event_handler->AddListener(mouse_down_func);
+    m_mouse_up_token = m_event_handler->AddListener(mouse_up_func);
+    m_mouse_move_token = m_event_handler->AddListener(mouse_move_func);
+    m_mouse_wheel_token = m_event_handler->AddListener(mouse_wheel);
+    m_multi_gesture_token = m_event_handler->AddListener(multi_gesture);
+
     AddDrawable(new mono::SpriteBatchDrawer(m_transform_system, m_sprite_system), 0);
+    AddDrawable(new SpriteFramesDrawer(m_sprite_data), 0);
+    AddDrawable(new SpriteOffsetDrawer(m_transform_system, m_sprite_data, entity->id, m_offset_mode), 0);
     AddUpdatable(new InterfaceDrawer(m_context));
 }
 
@@ -192,16 +205,14 @@ mono::EventResult Animator::OnDownUp(const event::KeyDownEvent& event)
         case Keycode::LEFT:
         case Keycode::DOWN:
         {
-            int id = m_sprite->GetActiveAnimation();
-            --id;
+            const int id = m_sprite->GetActiveAnimation() - 1;
             animation = std::max(id, 0);
             break;
         }
         case Keycode::RIGHT:
         case Keycode::UP:
         {
-            int id = m_sprite->GetActiveAnimation();
-            ++id;
+            const int id = m_sprite->GetActiveAnimation() + 1;
             animation = std::min(id, (int)m_sprite_data->animations.size() -1);
             break;
         }
@@ -236,7 +247,7 @@ mono::EventResult Animator::OnDownUp(const event::KeyDownEvent& event)
             animation = 9;
             break;
         case Keycode::TAB:
-            m_offset_mode = !m_offset_mode;
+            ToggleOffsetMode();
             break;
         default:
             break;
@@ -284,8 +295,9 @@ mono::EventResult Animator::OnMouseMove(const event::MouseMotionEvent& event)
     const math::Vector mouse_position(event.world_x, event.world_y);
     if(m_moving_offset)
     {
-        //const mono::SpriteFrame& current_frame = m_sprite.GetCurrentFrame();
         //m_sprite.SetFrameOffset(m_context.selected_frame, mouse_position); // + current_frame.center_offset);
+
+        m_sprite_data->frames[m_context.selected_frame].center_offset = mouse_position;
     }
     else
     {
@@ -381,3 +393,13 @@ void Animator::SaveSprite()
     WriteSpriteFile(m_sprite_file, m_sprite_data->animations);
 }
 
+void Animator::SetSpeed(float new_speed)
+{
+    m_event_handler->DispatchEvent(event::TimeScaleEvent(new_speed));
+}
+
+void Animator::ToggleOffsetMode()
+{
+    m_offset_mode = !m_offset_mode;
+    m_context.offset_mode = m_offset_mode;
+}

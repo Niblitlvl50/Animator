@@ -16,6 +16,9 @@ namespace animator
         math::Quad plus_icon;
         math::Quad delete_icon;
 
+        float update_speed;
+        bool offset_mode;
+
         int animation_id;
         int n_animations;
         int max_frames;
@@ -37,5 +40,8 @@ namespace animator
 
         std::function<void (int frame)> set_active_frame;
         std::function<void ()> on_save;
+
+        std::function<void ()> toggle_offset_mode;
+        std::function<void (float update_speed)> set_speed;
     };
 }

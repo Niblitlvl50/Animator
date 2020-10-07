@@ -50,6 +50,8 @@ namespace animator
 
         void Zoom(float multiplier);
         void SaveSprite();
+        void SetSpeed(float new_speed);
+        void ToggleOffsetMode();
 
     private:
 

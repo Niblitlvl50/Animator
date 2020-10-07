@@ -1,12 +1,12 @@
 
 #pragma once
 
-#include "Math/Vector.h"
 #include "Rendering/IDrawable.h"
+#include "Rendering/Texture/ITextureFactory.h"
 
 namespace mono
 {
-    class Sprite;
+    struct SpriteData;
 }
 
 namespace animator
@@ -15,12 +15,12 @@ namespace animator
     {
     public:
 
-        SpriteFramesDrawer(mono::Sprite& sprite, const math::Vector& window_size);
+        SpriteFramesDrawer(const mono::SpriteData* sprite_data);
 
         void Draw(mono::IRenderer& renderer) const override;
         math::Quad BoundingBox() const override;
 
-        const mono::Sprite& m_sprite;
-        const math::Vector m_window_size;
+        const mono::SpriteData* m_sprite_data;
+        mono::ITexturePtr m_texture;
     };
 }
