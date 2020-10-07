@@ -24,8 +24,8 @@ namespace
             ImGuiWindowFlags_NoNav |
             ImGuiWindowFlags_NoMove;
 
-        ImGui::SetNextWindowPos(ImVec2(10.0f, 10.0f));
-        //ImGui::SetNextWindowBgAlpha(0.15f); // Transparent background
+        ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
+        ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
 
         if (ImGui::Begin("Example: Simple overlay", nullptr, window_flags))
         {
@@ -211,7 +211,7 @@ void InterfaceDrawer::Update(const mono::UpdateContext& update_context)
     DrawAnimationWindow(m_context);
     //DrawActiveFrameWindow(m_context);
 
-    ImGui::ShowDemoWindow();
+    //ImGui::ShowDemoWindow();
     //ImGui::ShowStyleEditor();
 
     ImGui::Render();
