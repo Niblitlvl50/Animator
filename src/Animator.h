@@ -46,11 +46,14 @@ namespace animator
         void OnAddFrame();
         void OnDeleteFrame(int id);
         void OnNameAnimation(const char* new_name);
+        void SetFrameRate(int new_frame_rate);
         void SetActiveFrame(int frame);
 
         void Zoom(float multiplier);
         void SaveSprite();
         void SetSpeed(float new_speed);
+        void SetPaused();
+        void SetPlaying();
         void ToggleOffsetMode();
 
     private:

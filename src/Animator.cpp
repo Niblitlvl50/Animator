@@ -66,6 +66,25 @@ namespace
         context.plus_icon = plus->GetCurrentFrame().texture_coordinates;
         context.delete_icon = del->GetCurrentFrame().texture_coordinates;
     }
+
+    class ActiveFrameUpdater : public mono::IUpdatable
+    {
+    public:
+
+        ActiveFrameUpdater(const mono::ISprite* sprite, animator::UIContext& ui_context)
+            : m_sprite(sprite)
+            , m_ui_context(ui_context)
+        { }
+
+        void Update(const mono::UpdateContext& update_context) override
+        {
+            (void)update_context;
+            m_ui_context.selected_frame = m_sprite->GetActiveFrame();
+        }
+        
+        const mono::ISprite* m_sprite;
+        animator::UIContext& m_ui_context;
+    };
 }
 
 Animator::Animator(
@@ -97,10 +116,13 @@ Animator::Animator(
     m_context.add_frame             = std::bind(&Animator::OnAddFrame, this);
     m_context.delete_frame          = std::bind(&Animator::OnDeleteFrame, this, _1);
     m_context.set_name              = std::bind(&Animator::OnNameAnimation, this, _1);
+    m_context.set_frame_rate        = std::bind(&Animator::SetFrameRate, this, _1);
     m_context.set_active_animation  = std::bind(&Animator::SetAnimation, this, _1);
     m_context.set_active_frame      = std::bind(&Animator::SetActiveFrame, this, _1);
     m_context.on_save               = std::bind(&Animator::SaveSprite, this);
     m_context.set_speed             = std::bind(&Animator::SetSpeed, this, _1);
+    m_context.set_paused            = std::bind(&Animator::SetPaused, this);
+    m_context.set_playing           = std::bind(&Animator::SetPlaying, this);
     m_context.toggle_offset_mode    = std::bind(&Animator::ToggleOffsetMode, this);
 }
 
@@ -135,7 +157,7 @@ void Animator::OnLoad(mono::ICamera* camera)
     math::Position(sprite_transform, math::Center(viewport));
 
     m_context.max_frames = m_sprite_data->frames.size();
-    m_context.selected_frame = 0;
+    //m_context.selected_frame = 0;
     SetAnimation(m_sprite->GetActiveAnimation());
 
     m_input_handler = std::make_unique<ImGuiInputHandler>(*m_event_handler);
@@ -159,6 +181,8 @@ void Animator::OnLoad(mono::ICamera* camera)
     AddDrawable(new mono::SpriteBatchDrawer(m_transform_system, m_sprite_system), 0);
     AddDrawable(new SpriteFramesDrawer(m_sprite_data), 0);
     AddDrawable(new SpriteOffsetDrawer(m_transform_system, m_sprite_data, entity->id, m_offset_mode), 0);
+
+    AddUpdatable(new ActiveFrameUpdater(m_sprite, m_context));
     AddUpdatable(new InterfaceDrawer(m_context));
 }
 
@@ -184,8 +208,9 @@ void Animator::UpdateUIContext(int animation_id)
     mono::SpriteAnimation& animation = m_sprite_data->animations[animation_id];
 
     m_context.animation_id = animation_id;
-    m_context.display_name = animation.name.c_str();
-    m_context.loop_animation = animation.looping;
+    m_context.animation_name = animation.name.c_str();
+    m_context.animation_looping = animation.looping;
+    m_context.animation_frame_rate = animation.frame_rate;
     m_context.frames = &animation.frames;
     m_context.n_animations = m_sprite_data->animations.size();
 }
@@ -199,22 +224,31 @@ mono::EventResult Animator::OnDownUp(const event::KeyDownEvent& event)
         case Keycode::ENTER:
         case Keycode::SPACE:
         {
+            m_sprite->SetAnimationPlayback(mono::PlaybackMode::PLAYING);
             m_sprite->RestartAnimation();
             return mono::EventResult::HANDLED;
         }
         case Keycode::LEFT:
-        case Keycode::DOWN:
+        case Keycode::RIGHT:
         {
-            const int id = m_sprite->GetActiveAnimation() - 1;
-            animation = std::max(id, 0);
+            const int add_value = (event.key == Keycode::LEFT) ? -1 : +1;
+            const int id = m_sprite->GetActiveAnimation() + add_value;
+            animation = std::clamp(id, 0, (int)m_sprite_data->animations.size() -1);
             break;
         }
-        case Keycode::RIGHT:
         case Keycode::UP:
+        case Keycode::DOWN:
         {
-            const int id = m_sprite->GetActiveAnimation() + 1;
-            animation = std::min(id, (int)m_sprite_data->animations.size() -1);
-            break;
+            const int add_value = (event.key == Keycode::UP) ? -1 : +1;
+            const int new_active_frame = m_sprite->GetActiveFrame() + add_value;
+
+            const mono::SpriteAnimation& animation = m_sprite_data->animations[m_sprite->GetActiveAnimation()];
+            const int frame = std::clamp(new_active_frame, 0, (int)animation.frames.size() -1);
+            SetActiveFrame(frame);
+
+            m_sprite->SetAnimationPlayback(mono::PlaybackMode::PAUSED);
+
+            return mono::EventResult::HANDLED;
         }
         case Keycode::ZERO:
             animation = 0;
@@ -372,6 +406,12 @@ void Animator::OnNameAnimation(const char* new_name)
     m_sprite_data->animations[current_id].name = new_name;
 }
 
+void Animator::SetFrameRate(int new_frame_rate)
+{
+    const int current_id = m_sprite->GetActiveAnimation();
+    m_sprite_data->animations[current_id].frame_rate = new_frame_rate;
+}
+
 void Animator::Zoom(float multiplier)
 {
     math::Quad quad = m_camera->GetViewport();
@@ -385,6 +425,7 @@ void Animator::Zoom(float multiplier)
 
 void Animator::SetActiveFrame(int frame)
 {
+    m_sprite->SetActiveFrame(frame);
     m_context.selected_frame = frame;
 }
 
@@ -396,6 +437,16 @@ void Animator::SaveSprite()
 void Animator::SetSpeed(float new_speed)
 {
     m_event_handler->DispatchEvent(event::TimeScaleEvent(new_speed));
+}
+
+void Animator::SetPaused()
+{
+    m_sprite->SetAnimationPlayback(mono::PlaybackMode::PAUSED);
+}
+
+void Animator::SetPlaying()
+{
+    m_sprite->SetAnimationPlayback(mono::PlaybackMode::PLAYING);
 }
 
 void Animator::ToggleOffsetMode()

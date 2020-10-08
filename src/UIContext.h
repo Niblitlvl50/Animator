@@ -24,8 +24,9 @@ namespace animator
         int max_frames;
         int selected_frame;
         
-        const char* display_name;
-        bool loop_animation;
+        const char* animation_name;
+        bool animation_looping;
+        int animation_frame_rate;
         std::vector<mono::SpriteAnimation::Frame>* frames;
 
         std::function<void ()> add_animation;
@@ -35,6 +36,7 @@ namespace animator
         // Active animation callbacks
         std::function<void (const char* new_name)> set_name;
         std::function<void (bool looping)> toggle_loop;
+        std::function<void (int frame_rate)> set_frame_rate;
         std::function<void ()> add_frame;
         std::function<void (int frame_id)> delete_frame;
 
@@ -43,5 +45,7 @@ namespace animator
 
         std::function<void ()> toggle_offset_mode;
         std::function<void (float update_speed)> set_speed;
+        std::function<void ()> set_paused;
+        std::function<void ()> set_playing;
     };
 }
