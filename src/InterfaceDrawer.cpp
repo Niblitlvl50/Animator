@@ -12,16 +12,8 @@ namespace
     void DrawOverlayToolbar(animator::UIContext& context)
     {
         ImGuiStyle& style = ImGui::GetStyle();
-
-        const ImageCoords& delete_icon = QuadToImageCoords(context.delete_icon);
-        const ImageCoords& plus_icon = QuadToImageCoords(context.plus_icon);
-        const ImageCoords& save_icon = QuadToImageCoords(context.save_icon);
-        void* texture_id = reinterpret_cast<void*>(context.tools_texture_id);
-        const ImVec2 small_button_size(22, 22);
-
         const ImVec4& default_color = style.Colors[ImGuiCol_Button];
         const ImVec4& hovered_color = style.Colors[ImGuiCol_ButtonHovered];
-        const ImVec4& window_bg_color = style.Colors[ImGuiCol_WindowBg];
 
         const ImGuiWindowFlags window_flags =
             ImGuiWindowFlags_NoDecoration |
@@ -34,32 +26,23 @@ namespace
         ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
         ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
 
-        if (ImGui::Begin("Example: Simple overlay", nullptr, window_flags))
+        if (ImGui::Begin("button_overlay", nullptr, window_flags))
         {
-            const ImVec4& color = (context.offset_mode) ? hovered_color : default_color;
-            ImGui::PushStyleColor(ImGuiCol_Button, color);
+            ImGui::PushStyleColor(ImGuiCol_Button, context.offset_mode ? hovered_color : default_color);
             if(ImGui::Button("Show Grid"))
                 context.toggle_offset_mode();
             ImGui::PopStyleColor();
 
             ImGui::SameLine();
 
-            ImGui::PushID(1);
-            if(ImGui::Button("||"))
-            //if(ImGui::ImageButton(texture_id, small_button_size, delete_icon.uv1, delete_icon.uv2, 0))
-                context.set_paused();
-            ImGui::PopID();
+            const char* play_pause_button = context.animation_playing ? "|>" : "||";
+            ImGui::PushStyleColor(ImGuiCol_Button, context.animation_playing ? hovered_color : default_color);
+            if(ImGui::Button(play_pause_button))
+                context.toggle_playing();
+
+            ImGui::PopStyleColor();
 
             ImGui::SameLine();
-
-            ImGui::PushID(2);
-            //if(ImGui::ImageButton(texture_id, small_button_size, plus_icon.uv1, plus_icon.uv2, 0))
-            if(ImGui::Button("|>"))
-                context.set_playing();
-            ImGui::PopID();
-
-            ImGui::SameLine();
-
             if(ImGui::SliderFloat("Speed", &context.update_speed, 0.1f, 2.0f, "%.1f x"))
                 context.set_speed(context.update_speed);
         }
@@ -215,6 +198,7 @@ namespace
         }
 
         ImGui::EndChild();
+        ImGui::Separator();
         ImGui::End();
 
         ImGui::PopStyleVar(2);

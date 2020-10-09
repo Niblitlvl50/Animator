@@ -18,6 +18,7 @@ namespace animator
 
         float update_speed;
         bool offset_mode;
+        bool animation_playing;
 
         int animation_id;
         int n_animations;
@@ -44,8 +45,7 @@ namespace animator
         std::function<void ()> on_save;
 
         std::function<void ()> toggle_offset_mode;
+        std::function<void ()> toggle_playing;
         std::function<void (float update_speed)> set_speed;
-        std::function<void ()> set_paused;
-        std::function<void ()> set_playing;
     };
 }

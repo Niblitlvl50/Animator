@@ -121,8 +121,7 @@ Animator::Animator(
     m_context.set_active_frame      = std::bind(&Animator::SetActiveFrame, this, _1);
     m_context.on_save               = std::bind(&Animator::SaveSprite, this);
     m_context.set_speed             = std::bind(&Animator::SetSpeed, this, _1);
-    m_context.set_paused            = std::bind(&Animator::SetPaused, this);
-    m_context.set_playing           = std::bind(&Animator::SetPlaying, this);
+    m_context.toggle_playing        = std::bind(&Animator::TogglePlaying, this);
     m_context.toggle_offset_mode    = std::bind(&Animator::ToggleOffsetMode, this);
 }
 
@@ -224,8 +223,7 @@ mono::EventResult Animator::OnDownUp(const event::KeyDownEvent& event)
         case Keycode::ENTER:
         case Keycode::SPACE:
         {
-            m_sprite->SetAnimationPlayback(mono::PlaybackMode::PLAYING);
-            m_sprite->RestartAnimation();
+            TogglePlaying();
             return mono::EventResult::HANDLED;
         }
         case Keycode::LEFT:
@@ -247,6 +245,7 @@ mono::EventResult Animator::OnDownUp(const event::KeyDownEvent& event)
             SetActiveFrame(frame);
 
             m_sprite->SetAnimationPlayback(mono::PlaybackMode::PAUSED);
+            m_context.animation_playing = false;
 
             return mono::EventResult::HANDLED;
         }
@@ -439,14 +438,12 @@ void Animator::SetSpeed(float new_speed)
     m_event_handler->DispatchEvent(event::TimeScaleEvent(new_speed));
 }
 
-void Animator::SetPaused()
+void Animator::TogglePlaying()
 {
-    m_sprite->SetAnimationPlayback(mono::PlaybackMode::PAUSED);
-}
-
-void Animator::SetPlaying()
-{
-    m_sprite->SetAnimationPlayback(mono::PlaybackMode::PLAYING);
+    m_context.animation_playing = !m_context.animation_playing;
+    const mono::PlaybackMode new_mode =
+        m_context.animation_playing ? mono::PlaybackMode::PLAYING : mono::PlaybackMode::PAUSED;
+    m_sprite->SetAnimationPlayback(new_mode);
 }
 
 void Animator::ToggleOffsetMode()
