@@ -24,6 +24,7 @@ namespace animator
             mono::SpriteSystem* sprite_system,
             mono::EntitySystem* entity_system,
             mono::EventHandler* event_handler,
+            float pixels_per_meter,
             const char* sprite_file);
         ~Animator();
 
@@ -34,9 +35,6 @@ namespace animator
         void UpdateUIContext(int animation_id);
 
         mono::EventResult OnDownUp(const event::KeyDownEvent& event);
-        mono::EventResult OnMouseDown(const event::MouseDownEvent& event);
-        mono::EventResult OnMouseUp(const event::MouseUpEvent& event);
-        mono::EventResult OnMouseMove(const event::MouseMotionEvent& event);
         mono::EventResult OnMouseWheel(const event::MouseWheelEvent& event);
         mono::EventResult OnMultiGesture(const event::MultiGestureEvent& event);
 
@@ -46,8 +44,9 @@ namespace animator
         void OnAddFrame();
         void OnDeleteFrame(int id);
         void OnNameAnimation(const char* new_name);
-        void SetFrameRate(int new_frame_rate);
+        void SetFrameDuration(int new_frame_duration);
         void SetActiveFrame(int frame);
+        void SetFrameOffset(int x, int y);
 
         void Zoom(float multiplier);
         void SaveSprite();
@@ -64,12 +63,10 @@ namespace animator
         mono::SpriteSystem* m_sprite_system;
         mono::EntitySystem* m_entity_system;
         mono::EventHandler* m_event_handler;
+        const float m_pixels_per_meter;
         const char* m_sprite_file;
 
         mono::EventToken<event::KeyDownEvent> m_key_down_token;
-        mono::EventToken<event::MouseDownEvent> m_mouse_down_token;
-        mono::EventToken<event::MouseUpEvent> m_mouse_up_token;
-        mono::EventToken<event::MouseMotionEvent> m_mouse_move_token;
         mono::EventToken<event::MouseWheelEvent> m_mouse_wheel_token;
         mono::EventToken<event::MultiGestureEvent> m_multi_gesture_token;
 
@@ -80,9 +77,5 @@ namespace animator
         mono::ICamera* m_camera;
         mono::SpriteData* m_sprite_data;
         mono::ISprite* m_sprite;
-
-        bool m_offset_mode;
-        bool m_offset_highlighted;
-        bool m_moving_offset;
     };
 }

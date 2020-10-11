@@ -4,7 +4,7 @@
 
 #include "nlohmann/json.hpp"
 
-void animator::WriteSpriteFile(const char* sprite_file, const std::vector<mono::SpriteAnimation>& animations)
+void animator::WriteSpriteFile(const char* sprite_file, const mono::SpriteData* sprite_data)
 {
     file::FilePtr input_file = file::OpenAsciiFile(sprite_file);
     if(!input_file)
@@ -19,7 +19,7 @@ void animator::WriteSpriteFile(const char* sprite_file, const std::vector<mono::
     nlohmann::json& json_animations = json["animations"];
     json_animations.clear();
 
-    for(const mono::SpriteAnimation& animation : animations)
+    for(const mono::SpriteAnimation& animation : sprite_data->animations)
     {
         std::vector<int> values;
 

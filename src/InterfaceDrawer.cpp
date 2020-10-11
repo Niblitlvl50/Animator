@@ -21,10 +21,10 @@ namespace
             ImGuiWindowFlags_NoSavedSettings |
             ImGuiWindowFlags_NoFocusOnAppearing |
             ImGuiWindowFlags_NoNav |
-            ImGuiWindowFlags_NoMove;
+            ImGuiWindowFlags_NoMove |
+            ImGuiWindowFlags_NoBackground;
 
         ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f));
-        ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
 
         if (ImGui::Begin("button_overlay", nullptr, window_flags))
         {
@@ -102,12 +102,12 @@ namespace
 
         ImGui::BeginChild("asdfasd", ImVec2(-1, 40), false, ImGuiWindowFlags_HorizontalScrollbar);
 
-        for(int index = 0; index < context.n_animations; ++index)
+        for(size_t index = 0; index < context.sprite_data->animations.size(); ++index)
         {
-            const bool is_selected_index = (index == context.animation_id);
+            const bool is_selected_index = (index == (size_t)context.animation_id);
 
             char buffer[32] = { 0 };
-            snprintf(buffer, 32, "%i", index);
+            snprintf(buffer, 32, "%zu", index);
 
             const ImVec4& color = is_selected_index ? hovered_color : default_color;
 
@@ -138,8 +138,8 @@ namespace
         if(ImGui::Checkbox("Loop", &context.animation_looping))
             context.toggle_loop(context.animation_looping);
 
-        if(ImGui::DragInt("Frame Rate", &context.animation_frame_rate, 1.0f, 10, 1000))
-            context.set_frame_rate(context.animation_frame_rate);
+        if(ImGui::DragInt("Duration", &context.animation_frame_duration, 1.0f, 10, 1000, "%d ms"))
+            context.set_frame_duration(context.animation_frame_duration);
 
         ImGui::Spacing();
         ImGui::Spacing();
@@ -164,9 +164,11 @@ namespace
         ImGui::SetColumnWidth(1, second_column_width);
         //ImGui::SetColumnWidth(2, 25.0f);
 
-        for(size_t index = 0; index < context.frames->size(); ++index)
+        mono::SpriteAnimation& active_animation = context.sprite_data->animations[context.animation_id];
+
+        for(size_t index = 0; index < active_animation.frames.size(); ++index)
         {
-            mono::SpriteAnimation::Frame& frame = context.frames->at(index);
+            mono::SpriteAnimation::Frame& frame = active_animation.frames.at(index);
             const std::string string_index = std::to_string(index + 1);
 
             ImGui::PushID(index);
@@ -179,7 +181,7 @@ namespace
 
             ImGui::NextColumn();
             ImGui::SetNextItemWidth(second_column_item_width);
-            ImGui::SliderInt("", &frame.frame, 0, context.max_frames -1);
+            ImGui::SliderInt("", &frame.frame, 0, context.sprite_data->frames.size() -1);
             ImGui::NextColumn();
 
             //if(ImGui::ImageButton(texture_id, ImVec2(16, 16), delete_icon.uv1, delete_icon.uv2, 3, window_bg_color))
@@ -198,10 +200,37 @@ namespace
         }
 
         ImGui::EndChild();
-        ImGui::Separator();
         ImGui::End();
 
         ImGui::PopStyleVar(2);
+    }
+
+    void DrawOffsetWindow(animator::UIContext& context)
+    {
+        if(!context.offset_mode)
+            return;
+
+        const int window_flags = 
+            ImGuiWindowFlags_NoDecoration |
+            ImGuiWindowFlags_NoSavedSettings |
+            ImGuiWindowFlags_AlwaysAutoResize;
+
+        ImGui::Begin("offset_window", nullptr, window_flags);
+        ImGui::TextDisabled("FRAME OFFSET");
+        ImGui::Spacing();
+        
+        if(context.animation_playing)
+        {
+            ImGui::Text("Pause the animation to adjust the frame offset.");
+        }
+        else
+        {
+            const bool x_changed = ImGui::InputInt("X", &context.frame_offset_x);
+            const bool y_changed = ImGui::InputInt("Y", &context.frame_offset_y);
+            if(x_changed || y_changed)
+                context.set_frame_offset(context.frame_offset_x, context.frame_offset_y);
+        }
+        ImGui::End();
     }
 }
 
@@ -216,6 +245,7 @@ void InterfaceDrawer::Update(const mono::UpdateContext& update_context)
 
     DrawOverlayToolbar(m_context);
     DrawAnimationWindow(m_context);
+    DrawOffsetWindow(m_context);
 
     //ImGui::ShowDemoWindow();
 

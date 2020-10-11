@@ -79,7 +79,7 @@ namespace
         void Update(const mono::UpdateContext& update_context) override
         {
             (void)update_context;
-            m_ui_context.selected_frame = m_sprite->GetActiveFrame();
+            m_ui_context.selected_frame = m_sprite->GetActiveAnimationFrame();
         }
         
         const mono::ISprite* m_sprite;
@@ -93,21 +93,20 @@ Animator::Animator(
     mono::SpriteSystem* sprite_system,
     mono::EntitySystem* entity_system,
     mono::EventHandler* event_handler,
+    float pixels_per_meter,
     const char* sprite_file)
     : m_window(window)
     , m_transform_system(transform_system)
     , m_sprite_system(sprite_system)
     , m_entity_system(entity_system)
     , m_event_handler(event_handler)
+    , m_pixels_per_meter(pixels_per_meter)
     , m_sprite_file(sprite_file)
-    , m_offset_mode(false)
-    , m_offset_highlighted(false)
-    , m_moving_offset(false)
 {
     using namespace std::placeholders;
 
     m_context.update_speed = 1.0f;
-    m_context.offset_mode = m_offset_mode;
+    m_context.offset_mode = false;
 
     // Setup UI callbacks
     m_context.toggle_loop           = std::bind(&Animator::OnLoopToggle, this, _1);
@@ -116,9 +115,10 @@ Animator::Animator(
     m_context.add_frame             = std::bind(&Animator::OnAddFrame, this);
     m_context.delete_frame          = std::bind(&Animator::OnDeleteFrame, this, _1);
     m_context.set_name              = std::bind(&Animator::OnNameAnimation, this, _1);
-    m_context.set_frame_rate        = std::bind(&Animator::SetFrameRate, this, _1);
+    m_context.set_frame_duration    = std::bind(&Animator::SetFrameDuration, this, _1);
     m_context.set_active_animation  = std::bind(&Animator::SetAnimation, this, _1);
     m_context.set_active_frame      = std::bind(&Animator::SetActiveFrame, this, _1);
+    m_context.set_frame_offset      = std::bind(&Animator::SetFrameOffset, this, _1, _2);
     m_context.on_save               = std::bind(&Animator::SaveSprite, this);
     m_context.set_speed             = std::bind(&Animator::SetSpeed, this, _1);
     m_context.toggle_playing        = std::bind(&Animator::TogglePlaying, this);
@@ -128,9 +128,6 @@ Animator::Animator(
 Animator::~Animator()
 {
     m_event_handler->RemoveListener(m_key_down_token);
-    m_event_handler->RemoveListener(m_mouse_down_token);
-    m_event_handler->RemoveListener(m_mouse_up_token);
-    m_event_handler->RemoveListener(m_mouse_move_token);
     m_event_handler->RemoveListener(m_mouse_wheel_token);
     m_event_handler->RemoveListener(m_multi_gesture_token);
 }
@@ -145,6 +142,8 @@ void Animator::OnLoad(mono::ICamera* camera)
     SetupIcons(m_context);
 
     m_sprite_data = const_cast<mono::SpriteData*>(mono::GetSpriteFactory()->GetSpriteDataForFile(m_sprite_file));
+    m_context.sprite_data = m_sprite_data;
+    m_context.animation_playing = true;
 
     mono::Entity* entity = m_entity_system->AllocateEntity();
 
@@ -155,31 +154,24 @@ void Animator::OnLoad(mono::ICamera* camera)
     math::Matrix& sprite_transform = m_transform_system->GetTransform(entity->id);
     math::Position(sprite_transform, math::Center(viewport));
 
-    m_context.max_frames = m_sprite_data->frames.size();
-    //m_context.selected_frame = 0;
     SetAnimation(m_sprite->GetActiveAnimation());
+    //TogglePlaying();
 
     m_input_handler = std::make_unique<ImGuiInputHandler>(*m_event_handler);
 
     using namespace std::placeholders;
 
     const event::KeyDownEventFunc& key_down_func        = std::bind(&Animator::OnDownUp, this, _1);
-    const event::MouseDownEventFunc& mouse_down_func    = std::bind(&Animator::OnMouseDown, this, _1);
-    const event::MouseUpEventFunc& mouse_up_func        = std::bind(&Animator::OnMouseUp, this, _1);
-    const event::MouseMotionEventFunc& mouse_move_func  = std::bind(&Animator::OnMouseMove, this, _1);
     const event::MouseWheelEventFunc& mouse_wheel       = std::bind(&Animator::OnMouseWheel, this, _1);
     const event::MultiGestureEventFunc& multi_gesture   = std::bind(&Animator::OnMultiGesture, this, _1);
 
     m_key_down_token = m_event_handler->AddListener(key_down_func);
-    m_mouse_down_token = m_event_handler->AddListener(mouse_down_func);
-    m_mouse_up_token = m_event_handler->AddListener(mouse_up_func);
-    m_mouse_move_token = m_event_handler->AddListener(mouse_move_func);
     m_mouse_wheel_token = m_event_handler->AddListener(mouse_wheel);
     m_multi_gesture_token = m_event_handler->AddListener(multi_gesture);
 
     AddDrawable(new mono::SpriteBatchDrawer(m_transform_system, m_sprite_system), 0);
     AddDrawable(new SpriteFramesDrawer(m_sprite_data), 0);
-    AddDrawable(new SpriteOffsetDrawer(m_transform_system, m_sprite_data, entity->id, m_offset_mode), 0);
+    AddDrawable(new SpriteOffsetDrawer(m_transform_system, m_sprite_system, m_sprite_data, entity->id, m_context.offset_mode), 0);
 
     AddUpdatable(new ActiveFrameUpdater(m_sprite, m_context));
     AddUpdatable(new InterfaceDrawer(m_context));
@@ -199,6 +191,7 @@ void Animator::SetAnimation(int animation_id)
     {
         m_sprite->SetAnimation(animation_id);
         UpdateUIContext(animation_id);
+        SetActiveFrame(m_sprite->GetActiveAnimationFrame());
     }
 }
 
@@ -209,9 +202,7 @@ void Animator::UpdateUIContext(int animation_id)
     m_context.animation_id = animation_id;
     m_context.animation_name = animation.name.c_str();
     m_context.animation_looping = animation.looping;
-    m_context.animation_frame_rate = animation.frame_rate;
-    m_context.frames = &animation.frames;
-    m_context.n_animations = m_sprite_data->animations.size();
+    m_context.animation_frame_duration = animation.frame_duration;
 }
 
 mono::EventResult Animator::OnDownUp(const event::KeyDownEvent& event)
@@ -238,7 +229,7 @@ mono::EventResult Animator::OnDownUp(const event::KeyDownEvent& event)
         case Keycode::DOWN:
         {
             const int add_value = (event.key == Keycode::UP) ? -1 : +1;
-            const int new_active_frame = m_sprite->GetActiveFrame() + add_value;
+            const int new_active_frame = m_sprite->GetActiveAnimationFrame() + add_value;
 
             const mono::SpriteAnimation& animation = m_sprite_data->animations[m_sprite->GetActiveAnimation()];
             const int frame = std::clamp(new_active_frame, 0, (int)animation.frames.size() -1);
@@ -290,51 +281,6 @@ mono::EventResult Animator::OnDownUp(const event::KeyDownEvent& event)
     {
         SetAnimation(animation);
         return mono::EventResult::HANDLED;
-    }
-
-    return mono::EventResult::PASS_ON;
-}
-
-bool Animator::IsHooveringZero(const math::Vector& position) const
-{
-    const System::Size& size = m_window->Size();
-    const float picking_distance = m_camera->GetViewport().mB.x / size.width * 5.0f;
-
-    const float distance_to_zero = math::Length(position - math::ZeroVec);
-    return  (distance_to_zero < picking_distance);
-}
-
-mono::EventResult Animator::OnMouseDown(const event::MouseDownEvent& event)
-{
-    if(m_offset_mode)
-        m_moving_offset = IsHooveringZero(math::Vector(event.world_x, event.world_y));
-
-    return mono::EventResult::PASS_ON;
-}
-
-mono::EventResult Animator::OnMouseUp(const event::MouseUpEvent&)
-{
-    if(m_offset_mode)
-        m_moving_offset = false;
-
-    return mono::EventResult::PASS_ON;
-}
-
-mono::EventResult Animator::OnMouseMove(const event::MouseMotionEvent& event)
-{
-    if(!m_offset_mode)
-        return mono::EventResult::PASS_ON;
-
-    const math::Vector mouse_position(event.world_x, event.world_y);
-    if(m_moving_offset)
-    {
-        //m_sprite.SetFrameOffset(m_context.selected_frame, mouse_position); // + current_frame.center_offset);
-
-        m_sprite_data->frames[m_context.selected_frame].center_offset = mouse_position;
-    }
-    else
-    {
-        m_offset_highlighted = IsHooveringZero(mouse_position);
     }
 
     return mono::EventResult::PASS_ON;
@@ -405,32 +351,49 @@ void Animator::OnNameAnimation(const char* new_name)
     m_sprite_data->animations[current_id].name = new_name;
 }
 
-void Animator::SetFrameRate(int new_frame_rate)
+void Animator::SetFrameDuration(int new_frame_duration)
 {
     const int current_id = m_sprite->GetActiveAnimation();
-    m_sprite_data->animations[current_id].frame_rate = new_frame_rate;
+    m_sprite_data->animations[current_id].frame_duration = new_frame_duration;
 }
 
 void Animator::Zoom(float multiplier)
 {
     math::Quad quad = m_camera->GetViewport();
 
-    const float resizeValue = quad.mB.x * 0.15f * multiplier;
+    const float resize_value = quad.mB.x * 0.15f * multiplier;
     const float aspect = quad.mB.x / quad.mB.y;
-    math::ResizeQuad(quad, resizeValue, aspect);
+    math::ResizeQuad(quad, resize_value, aspect);
 
     m_camera->SetTargetViewport(quad);
 }
 
 void Animator::SetActiveFrame(int frame)
 {
-    m_sprite->SetActiveFrame(frame);
+    m_sprite->SetActiveAnimationFrame(frame);
     m_context.selected_frame = frame;
+
+    const int active_animation = m_sprite->GetActiveAnimation();
+    const int frame_index = m_sprite_data->animations[active_animation].frames[frame].frame;
+
+    m_context.frame_offset_x = m_sprite_data->frames[frame_index].center_offset.x * m_pixels_per_meter;
+    m_context.frame_offset_y = m_sprite_data->frames[frame_index].center_offset.y * m_pixels_per_meter;
+}
+
+void Animator::SetFrameOffset(int x, int y)
+{
+    const float x_offset = float(x) / m_pixels_per_meter;
+    const float y_offset = float(y) / m_pixels_per_meter;
+
+    const int active_animation = m_sprite->GetActiveAnimation();
+    const int active_frame = m_sprite->GetActiveAnimationFrame();
+    const int frame_index = m_sprite_data->animations[active_animation].frames[active_frame].frame;
+    m_sprite_data->frames[frame_index].center_offset = math::Vector(x_offset, y_offset);
 }
 
 void Animator::SaveSprite()
 {
-    WriteSpriteFile(m_sprite_file, m_sprite_data->animations);
+    WriteSpriteFile(m_sprite_file, m_sprite_data);
 }
 
 void Animator::SetSpeed(float new_speed)
@@ -448,6 +411,5 @@ void Animator::TogglePlaying()
 
 void Animator::ToggleOffsetMode()
 {
-    m_offset_mode = !m_offset_mode;
-    m_context.offset_mode = m_offset_mode;
+    m_context.offset_mode = !m_context.offset_mode;
 }

@@ -16,19 +16,20 @@ namespace animator
         math::Quad plus_icon;
         math::Quad delete_icon;
 
-        float update_speed;
         bool offset_mode;
         bool animation_playing;
+        float update_speed;
 
         int animation_id;
-        int n_animations;
-        int max_frames;
-        int selected_frame;
-        
         const char* animation_name;
         bool animation_looping;
-        int animation_frame_rate;
-        std::vector<mono::SpriteAnimation::Frame>* frames;
+        int animation_frame_duration;
+
+        int selected_frame;
+        int frame_offset_x;
+        int frame_offset_y;
+
+        mono::SpriteData* sprite_data;
 
         std::function<void ()> add_animation;
         std::function<void ()> delete_animation;
@@ -37,11 +38,12 @@ namespace animator
         // Active animation callbacks
         std::function<void (const char* new_name)> set_name;
         std::function<void (bool looping)> toggle_loop;
-        std::function<void (int frame_rate)> set_frame_rate;
+        std::function<void (int new_frame_duration)> set_frame_duration;
         std::function<void ()> add_frame;
         std::function<void (int frame_id)> delete_frame;
 
         std::function<void (int frame)> set_active_frame;
+        std::function<void (int x, int y)> set_frame_offset;
         std::function<void ()> on_save;
 
         std::function<void ()> toggle_offset_mode;
