@@ -31,7 +31,6 @@ void SpriteOffsetDrawer::Draw(mono::IRenderer& renderer) const
     const math::Vector position = math::GetPosition(m_transform_system->GetWorld(m_sprite_id));
     const math::Quad world_bb = m_transform_system->GetWorldBoundingBox(m_sprite_id);
 
-    const mono::Color::RGBA& color = true ? color_highlighted : default_color;
     const std::vector<math::Vector>& cross = {
         position + math::Vector(-0.25f, 0.0f),
         position + math::Vector(0.25f, 0.0f),
@@ -39,8 +38,8 @@ void SpriteOffsetDrawer::Draw(mono::IRenderer& renderer) const
         position + math::Vector(0.0f, 0.25f)
     };
 
-    renderer.DrawLines(cross, color, 2.0f);
-    renderer.DrawPoints({ position }, color, 12.0f);
+    renderer.DrawLines(cross, color_highlighted, 2.0f);
+    renderer.DrawPoints({ position }, color_highlighted, 12.0f);
 
     renderer.DrawQuad(world_bb, default_color, 1.0f);
 }

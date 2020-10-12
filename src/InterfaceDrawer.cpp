@@ -225,10 +225,10 @@ namespace
         }
         else
         {
-            const bool x_changed = ImGui::InputInt("X", &context.frame_offset_x);
-            const bool y_changed = ImGui::InputInt("Y", &context.frame_offset_y);
+            const bool x_changed = ImGui::InputFloat("x", &context.frame_offset.x, 0.5f, 1.0f, 1);
+            const bool y_changed = ImGui::InputFloat("y", &context.frame_offset.y, 0.5f, 1.0f, 1);
             if(x_changed || y_changed)
-                context.set_frame_offset(context.frame_offset_x, context.frame_offset_y);
+                context.set_frame_offset(context.frame_offset);
         }
         ImGui::End();
     }

@@ -1,6 +1,5 @@
 
 #include "Animator.h"
-#include "SpriteFramesDrawer.h"
 #include "SpriteOffsetDrawer.h"
 
 #include "EventHandler/EventHandler.h"
@@ -118,7 +117,7 @@ Animator::Animator(
     m_context.set_frame_duration    = std::bind(&Animator::SetFrameDuration, this, _1);
     m_context.set_active_animation  = std::bind(&Animator::SetAnimation, this, _1);
     m_context.set_active_frame      = std::bind(&Animator::SetActiveFrame, this, _1);
-    m_context.set_frame_offset      = std::bind(&Animator::SetFrameOffset, this, _1, _2);
+    m_context.set_frame_offset      = std::bind(&Animator::SetFrameOffset, this, _1);
     m_context.on_save               = std::bind(&Animator::SaveSprite, this);
     m_context.set_speed             = std::bind(&Animator::SetSpeed, this, _1);
     m_context.toggle_playing        = std::bind(&Animator::TogglePlaying, this);
@@ -155,12 +154,10 @@ void Animator::OnLoad(mono::ICamera* camera)
     math::Position(sprite_transform, math::Center(viewport));
 
     SetAnimation(m_sprite->GetActiveAnimation());
-    //TogglePlaying();
 
     m_input_handler = std::make_unique<ImGuiInputHandler>(*m_event_handler);
 
     using namespace std::placeholders;
-
     const event::KeyDownEventFunc& key_down_func        = std::bind(&Animator::OnDownUp, this, _1);
     const event::MouseWheelEventFunc& mouse_wheel       = std::bind(&Animator::OnMouseWheel, this, _1);
     const event::MultiGestureEventFunc& multi_gesture   = std::bind(&Animator::OnMultiGesture, this, _1);
@@ -170,7 +167,6 @@ void Animator::OnLoad(mono::ICamera* camera)
     m_multi_gesture_token = m_event_handler->AddListener(multi_gesture);
 
     AddDrawable(new mono::SpriteBatchDrawer(m_transform_system, m_sprite_system), 0);
-    AddDrawable(new SpriteFramesDrawer(m_sprite_data), 0);
     AddDrawable(new SpriteOffsetDrawer(m_transform_system, m_sprite_system, m_sprite_data, entity->id, m_context.offset_mode), 0);
 
     AddUpdatable(new ActiveFrameUpdater(m_sprite, m_context));
@@ -376,19 +372,18 @@ void Animator::SetActiveFrame(int frame)
     const int active_animation = m_sprite->GetActiveAnimation();
     const int frame_index = m_sprite_data->animations[active_animation].frames[frame].frame;
 
-    m_context.frame_offset_x = m_sprite_data->frames[frame_index].center_offset.x * m_pixels_per_meter;
-    m_context.frame_offset_y = m_sprite_data->frames[frame_index].center_offset.y * m_pixels_per_meter;
+    m_context.frame_offset.x = m_sprite_data->frames[frame_index].center_offset.x * m_pixels_per_meter;
+    m_context.frame_offset.y = m_sprite_data->frames[frame_index].center_offset.y * m_pixels_per_meter;
 }
 
-void Animator::SetFrameOffset(int x, int y)
+void Animator::SetFrameOffset(const math::Vector& frame_offset_pixels)
 {
-    const float x_offset = float(x) / m_pixels_per_meter;
-    const float y_offset = float(y) / m_pixels_per_meter;
+    const math::Vector new_frame_offset = frame_offset_pixels / m_pixels_per_meter;
 
     const int active_animation = m_sprite->GetActiveAnimation();
     const int active_frame = m_sprite->GetActiveAnimationFrame();
     const int frame_index = m_sprite_data->animations[active_animation].frames[active_frame].frame;
-    m_sprite_data->frames[frame_index].center_offset = math::Vector(x_offset, y_offset);
+    m_sprite_data->frames[frame_index].center_offset = new_frame_offset;
 }
 
 void Animator::SaveSprite()

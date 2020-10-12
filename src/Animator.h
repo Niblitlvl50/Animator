@@ -46,7 +46,7 @@ namespace animator
         void OnNameAnimation(const char* new_name);
         void SetFrameDuration(int new_frame_duration);
         void SetActiveFrame(int frame);
-        void SetFrameOffset(int x, int y);
+        void SetFrameOffset(const math::Vector& frame_offset_pixels);
 
         void Zoom(float multiplier);
         void SaveSprite();

@@ -26,8 +26,7 @@ namespace animator
         int animation_frame_duration;
 
         int selected_frame;
-        int frame_offset_x;
-        int frame_offset_y;
+        math::Vector frame_offset;
 
         mono::SpriteData* sprite_data;
 
@@ -43,7 +42,7 @@ namespace animator
         std::function<void (int frame_id)> delete_frame;
 
         std::function<void (int frame)> set_active_frame;
-        std::function<void (int x, int y)> set_frame_offset;
+        std::function<void (const math::Vector& frame_offset_pixels)> set_frame_offset;
         std::function<void ()> on_save;
 
         std::function<void ()> toggle_offset_mode;
