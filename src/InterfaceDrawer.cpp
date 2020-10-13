@@ -29,13 +29,13 @@ namespace
         if (ImGui::Begin("button_overlay", nullptr, window_flags))
         {
             ImGui::PushStyleColor(ImGuiCol_Button, context.offset_mode ? hovered_color : default_color);
-            if(ImGui::Button("Show Grid"))
+            if(ImGui::Button("Offset Mode"))
                 context.toggle_offset_mode();
             ImGui::PopStyleColor();
 
             ImGui::SameLine();
 
-            const char* play_pause_button = context.animation_playing ? "|>" : "||";
+            const char* play_pause_button = context.animation_playing ? "||" : "|>";
             ImGui::PushStyleColor(ImGuiCol_Button, context.animation_playing ? hovered_color : default_color);
             if(ImGui::Button(play_pause_button))
                 context.toggle_playing();
@@ -62,7 +62,7 @@ namespace
         const int animation_window_height = window_size.y;
         const int window_x = window_size.x - window_width;
 
-        const ImageCoords& delete_icon = QuadToImageCoords(context.delete_icon);
+        //const ImageCoords& delete_icon = QuadToImageCoords(context.delete_icon);
         const ImageCoords& plus_icon = QuadToImageCoords(context.plus_icon);
         const ImageCoords& save_icon = QuadToImageCoords(context.save_icon);
 
@@ -129,17 +129,19 @@ namespace
         ImGui::Separator();
         ImGui::Spacing();
 
+        mono::SpriteAnimation& active_animation = context.sprite_data->animations[context.animation_id];
+
         char buffer[100] = { 0 };
-        snprintf(buffer, 100, "%s", context.animation_name);
+        snprintf(buffer, 100, "%s", active_animation.name.c_str());
         if(ImGui::InputText("", buffer, 100))
             context.set_name(buffer);
 
         ImGui::SameLine();
-        if(ImGui::Checkbox("Loop", &context.animation_looping))
-            context.toggle_loop(context.animation_looping);
+        if(ImGui::Checkbox("Loop", &active_animation.looping))
+            context.toggle_loop(active_animation.looping);
 
-        if(ImGui::DragInt("Duration", &context.animation_frame_duration, 1.0f, 10, 1000, "%d ms"))
-            context.set_frame_duration(context.animation_frame_duration);
+        if(ImGui::DragInt("Duration", &active_animation.frame_duration, 1.0f, 10, 1000, "%d ms"))
+            context.set_frame_duration(active_animation.frame_duration);
 
         ImGui::Spacing();
         ImGui::Spacing();
@@ -164,8 +166,6 @@ namespace
         ImGui::SetColumnWidth(1, second_column_width);
         //ImGui::SetColumnWidth(2, 25.0f);
 
-        mono::SpriteAnimation& active_animation = context.sprite_data->animations[context.animation_id];
-
         for(size_t index = 0; index < active_animation.frames.size(); ++index)
         {
             mono::SpriteAnimation::Frame& frame = active_animation.frames.at(index);
@@ -173,19 +173,21 @@ namespace
 
             ImGui::PushID(index);
             ImGui::AlignTextToFramePadding();
-            bool selected = (index == (size_t)context.selected_frame);
-            ImGui::Selectable(
+            const bool selected = (index == (size_t)context.selected_frame);
+            bool value = selected;
+            const bool is_clicked = ImGui::Selectable(
                 string_index.c_str(),
-                &selected,
-                ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap); //, ImVec2(0, 22));
+                &value,
+                ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap);
+
+            if(is_clicked && !selected)
+                context.set_active_frame(index);
 
             ImGui::NextColumn();
             ImGui::SetNextItemWidth(second_column_item_width);
-            ImGui::SliderInt("", &frame.frame, 0, context.sprite_data->frames.size() -1);
+            if(ImGui::SliderInt("", &frame.frame, 0, context.sprite_data->frames.size() -1))
+                context.animation_frame_updated(index, frame.frame);
             ImGui::NextColumn();
-
-            //if(ImGui::ImageButton(texture_id, ImVec2(16, 16), delete_icon.uv1, delete_icon.uv2, 3, window_bg_color))
-            //    context.delete_frame(index);
 
             ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
             ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor(70, 70, 70));
@@ -225,10 +227,10 @@ namespace
         }
         else
         {
-            const bool x_changed = ImGui::InputFloat("x", &context.frame_offset.x, 0.5f, 1.0f, 1);
-            const bool y_changed = ImGui::InputFloat("y", &context.frame_offset.y, 0.5f, 1.0f, 1);
+            const bool x_changed = ImGui::InputFloat("x", &context.frame_offset_pixels.x, 0.5f, 1.0f, 1);
+            const bool y_changed = ImGui::InputFloat("y", &context.frame_offset_pixels.y, 0.5f, 1.0f, 1);
             if(x_changed || y_changed)
-                context.set_frame_offset(context.frame_offset);
+                context.set_frame_offset(context.frame_offset_pixels);
         }
         ImGui::End();
     }

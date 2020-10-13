@@ -21,12 +21,8 @@ namespace animator
         float update_speed;
 
         int animation_id;
-        const char* animation_name;
-        bool animation_looping;
-        int animation_frame_duration;
-
         int selected_frame;
-        math::Vector frame_offset;
+        math::Vector frame_offset_pixels;
 
         mono::SpriteData* sprite_data;
 
@@ -37,6 +33,7 @@ namespace animator
         // Active animation callbacks
         std::function<void (const char* new_name)> set_name;
         std::function<void (bool looping)> toggle_loop;
+        std::function<void (int animation_frame_index, int frame)> animation_frame_updated;
         std::function<void (int new_frame_duration)> set_frame_duration;
         std::function<void ()> add_frame;
         std::function<void (int frame_id)> delete_frame;

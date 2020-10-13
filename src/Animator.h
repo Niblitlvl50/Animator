@@ -19,7 +19,6 @@ namespace animator
     public:
 
         Animator(
-            System::IWindow* window,
             mono::TransformSystem* transform_system,
             mono::SpriteSystem* sprite_system,
             mono::EntitySystem* entity_system,
@@ -31,24 +30,24 @@ namespace animator
         void OnLoad(mono::ICamera* camera) override;
         int OnUnload() override;
 
-        void SetAnimation(int animation_id);
-        void UpdateUIContext(int animation_id);
-
-        mono::EventResult OnDownUp(const event::KeyDownEvent& event);
+        mono::EventResult OnKeyDownUp(const event::KeyDownEvent& event);
         mono::EventResult OnMouseWheel(const event::MouseWheelEvent& event);
         mono::EventResult OnMultiGesture(const event::MultiGestureEvent& event);
 
-        void OnLoopToggle(bool state);
         void OnAddAnimation();
         void OnDeleteAnimation();
+        void SetAnimation(int animation_id);
+
+        void OnNameAnimation(const char* new_name);
+        void OnLoopToggle(bool state);
+        void SetFrameDuration(int new_frame_duration);
+        
         void OnAddFrame();
         void OnDeleteFrame(int id);
-        void OnNameAnimation(const char* new_name);
-        void SetFrameDuration(int new_frame_duration);
         void SetActiveFrame(int frame);
+        void SetAnimationFrame(int animation_frame_index, int frame);
         void SetFrameOffset(const math::Vector& frame_offset_pixels);
 
-        void Zoom(float multiplier);
         void SaveSprite();
         void SetSpeed(float new_speed);
         void TogglePlaying();
@@ -56,9 +55,8 @@ namespace animator
 
     private:
 
-        bool IsHooveringZero(const math::Vector& position) const;
+        void Zoom(float multiplier);
 
-        System::IWindow* m_window;
         mono::TransformSystem* m_transform_system;
         mono::SpriteSystem* m_sprite_system;
         mono::EntitySystem* m_entity_system;

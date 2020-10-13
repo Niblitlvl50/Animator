@@ -37,6 +37,14 @@ void animator::WriteSpriteFile(const char* sprite_file, const mono::SpriteData* 
         json_animations.push_back(object);
     }
 
+    nlohmann::json& json_frames = json["frames"];
+    for(size_t index = 0; index < sprite_data->frames.size(); ++index)
+    {
+        const mono::SpriteFrame& frame = sprite_data->frames[index];
+        json_frames[index]["x_offset"] = frame.center_offset.x;
+        json_frames[index]["y_offset"] = frame.center_offset.y;
+    }
+
     const std::string& serialized_sprite = json.dump(4);
     file::FilePtr output_file = file::CreateAsciiFile(sprite_file);
     std::fwrite(serialized_sprite.data(), serialized_sprite.length(), sizeof(char), output_file.get());

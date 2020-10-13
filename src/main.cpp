@@ -58,7 +58,7 @@ int main(int argc, const char* argv[])
         mono::EntitySystem* entity_system = system_context.CreateSystem<mono::EntitySystem>(max_entities);
 
         animator::Animator animator(
-            window, transform_system, sprite_system, entity_system, &event_handler, render_params.pixels_per_meter, sprite_file);
+            transform_system, sprite_system, entity_system, &event_handler, render_params.pixels_per_meter, sprite_file);
         mono::Engine engine(window, &system_context, &event_handler);
         engine.Run(&animator);
 
