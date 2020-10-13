@@ -26,6 +26,7 @@ set_source_files_properties(
 )
 
 file(GLOB_RECURSE source_files "src/*.cpp")
-add_executable(animator MACOSX_BUNDLE ${osx_bundle_icons} ${source_files})
+# add_executable(animator MACOSX_BUNDLE ${osx_bundle_icons} ${source_files})
+add_executable(animator ${source_files})
 add_dependencies(animator mono)
 target_link_libraries(animator mono)
