@@ -169,7 +169,7 @@ void Animator::OnLoad(mono::ICamera* camera)
     m_multi_gesture_token = m_event_handler->AddListener(multi_gesture);
 
     AddDrawable(new mono::SpriteBatchDrawer(m_transform_system, m_sprite_system), 0);
-    AddDrawable(new SpriteOffsetDrawer(m_transform_system, m_sprite_system, m_sprite_data, entity->id, m_context.offset_mode), 0);
+    AddDrawable(new SpriteOffsetDrawer(m_transform_system, m_sprite_data, entity->id, m_context.offset_mode), 0);
 
     AddUpdatable(new ActiveFrameUpdater(m_sprite, m_context));
     AddUpdatable(new InterfaceDrawer(m_context));
@@ -370,6 +370,7 @@ void Animator::SetActiveFrame(int frame)
 
 void Animator::SetAnimationFrame(int animation_frame_index, int frame)
 {
+    (void)animation_frame_index;
     m_context.frame_offset_pixels.x = m_sprite_data->frames[frame].center_offset.x * m_pixels_per_meter;
     m_context.frame_offset_pixels.y = m_sprite_data->frames[frame].center_offset.y * m_pixels_per_meter;
 }

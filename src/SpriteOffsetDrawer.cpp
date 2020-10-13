@@ -9,12 +9,10 @@ using namespace animator;
 
 SpriteOffsetDrawer::SpriteOffsetDrawer(
     mono::TransformSystem* transform_system,
-    mono::SpriteSystem* sprite_system,
     const mono::SpriteData* sprite_data,
     uint32_t entity_id,
     const bool& offset_mode)
     : m_transform_system(transform_system)
-    , m_sprite_system(sprite_system)
     , m_sprite_data(sprite_data)
     , m_sprite_id(entity_id)
     , m_offset_mode(offset_mode)

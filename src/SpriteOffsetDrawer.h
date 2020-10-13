@@ -13,7 +13,6 @@ namespace animator
 
         SpriteOffsetDrawer(
             mono::TransformSystem* transform_system,
-            mono::SpriteSystem* sprite_system,
             const mono::SpriteData* sprite_data,
             uint32_t sprite_id,
             const bool& offset_mode);
@@ -24,7 +23,6 @@ namespace animator
     private:
 
         mono::TransformSystem* m_transform_system;
-        mono::SpriteSystem* m_sprite_system;
         const mono::SpriteData* m_sprite_data;
         uint32_t m_sprite_id;
         const bool& m_offset_mode;
