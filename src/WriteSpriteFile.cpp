@@ -32,6 +32,7 @@ void animator::WriteSpriteFile(const char* sprite_file, const mono::SpriteData* 
         nlohmann::json object;
         object["name"] = animation.name;
         object["loop"] = animation.looping;
+        object["frame_duration"] = animation.frame_duration;
         object["frames"] = values;
 
         json_animations.push_back(object);

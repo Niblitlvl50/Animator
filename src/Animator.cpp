@@ -116,7 +116,7 @@ Animator::Animator(
     m_context.add_frame                 = std::bind(&Animator::OnAddFrame, this);
     m_context.delete_frame              = std::bind(&Animator::OnDeleteFrame, this, _1);
     m_context.animation_frame_updated   = std::bind(&Animator::SetAnimationFrame, this, _1, _2);
-    //m_context.set_frame_duration        = std::bind(&Animator::SetFrameDuration, this, _1);
+    m_context.set_frame_duration        = std::bind(&Animator::SetFrameDuration, this, _1);
     m_context.set_active_frame          = std::bind(&Animator::SetActiveFrame, this, _1);
     m_context.set_frame_offset          = std::bind(&Animator::SetFrameOffset, this, _1);
 
