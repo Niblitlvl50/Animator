@@ -5,9 +5,9 @@ constexpr const char* add_data = R"(
 {
     "animations": [
         {
+            "frame_duration": 100,
             "frames": [
-                0,
-                -50
+                0
             ],
             "loop": true,
             "name": "default"
@@ -19,15 +19,20 @@ constexpr const char* add_data = R"(
             "name": "add",
             "w": 50,
             "x": 70,
-            "x_offset": 0.0,
-            "y": 2,
-            "y_offset": 0.0
+            "y": 2
+        }
+    ],
+    "frames_offsets": [
+        {
+            "x": 0.0,
+            "y": 0.0
         }
     ],
     "texture": "res/animator_sprite_atlas.png",
     "texture_size": {
         "h": 512,
         "w": 512
-    }
+    },
+    "category": ""
 }
 )";

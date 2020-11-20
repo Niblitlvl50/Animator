@@ -1,0 +1,179 @@
+{
+    "animations": [
+        {
+            "frame_duration": 100,
+            "frames": [
+                0,
+                1,
+                2
+            ],
+            "loop": true,
+            "name": "attack"
+        },
+        {
+            "frame_duration": 100,
+            "frames": [
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10
+            ],
+            "loop": true,
+            "name": "dead"
+        },
+        {
+            "frame_duration": 100,
+            "frames": [
+                11
+            ],
+            "loop": true,
+            "name": "idle"
+        }
+    ],
+    "category": "cacodemon",
+    "frames": [
+        {
+            "h": 65,
+            "name": "cacodemon_attack_1",
+            "w": 63,
+            "x": 1932,
+            "y": 230
+        },
+        {
+            "h": 69,
+            "name": "cacodemon_attack_2",
+            "w": 63,
+            "x": 692,
+            "y": 188
+        },
+        {
+            "h": 71,
+            "name": "cacodemon_attack_3",
+            "w": 63,
+            "x": 625,
+            "y": 188
+        },
+        {
+            "h": 67,
+            "name": "cacodemon_dead_1",
+            "w": 63,
+            "x": 1313,
+            "y": 228
+        },
+        {
+            "h": 67,
+            "name": "cacodemon_dead_2",
+            "w": 63,
+            "x": 1380,
+            "y": 228
+        },
+        {
+            "h": 67,
+            "name": "cacodemon_dead_3",
+            "w": 63,
+            "x": 891,
+            "y": 188
+        },
+        {
+            "h": 67,
+            "name": "cacodemon_dead_4",
+            "w": 63,
+            "x": 958,
+            "y": 220
+        },
+        {
+            "h": 67,
+            "name": "cacodemon_dead_5",
+            "w": 63,
+            "x": 1246,
+            "y": 228
+        },
+        {
+            "h": 73,
+            "name": "cacodemon_dead_6",
+            "w": 67,
+            "x": 554,
+            "y": 188
+        },
+        {
+            "h": 66,
+            "name": "cacodemon_dead_7",
+            "w": 69,
+            "x": 1447,
+            "y": 228
+        },
+        {
+            "h": 49,
+            "name": "cacodemon_dead_8",
+            "w": 73,
+            "x": 759,
+            "y": 260
+        },
+        {
+            "h": 66,
+            "name": "cacodemon_idle_1",
+            "w": 63,
+            "x": 1520,
+            "y": 228
+        }
+    ],
+    "frames_offsets": [
+        {
+            "x": 0.0,
+            "y": 0.0
+        },
+        {
+            "x": 0.0,
+            "y": 0.0
+        },
+        {
+            "x": 0.0,
+            "y": 0.0
+        },
+        {
+            "x": 0.0,
+            "y": 0.0
+        },
+        {
+            "x": 0.0,
+            "y": 0.0
+        },
+        {
+            "x": 0.0,
+            "y": 0.0
+        },
+        {
+            "x": 0.0,
+            "y": 0.0
+        },
+        {
+            "x": 0.0,
+            "y": 0.0
+        },
+        {
+            "x": 0.0,
+            "y": 0.0
+        },
+        {
+            "x": 0.0,
+            "y": 0.0
+        },
+        {
+            "x": 0.0,
+            "y": 0.0
+        },
+        {
+            "x": 0.0,
+            "y": 0.0
+        }
+    ],
+    "texture": "res/sprite_atlas.png",
+    "texture_size": {
+        "h": 1024,
+        "w": 2048
+    }
+}
