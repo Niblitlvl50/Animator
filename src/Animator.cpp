@@ -135,9 +135,7 @@ Animator::~Animator()
 void Animator::OnLoad(mono::ICamera* camera)
 {
     m_camera = camera;
-
-    const math::Quad viewport(0.0f, 0.0f, 10.0f, 7.0f);
-    m_camera->SetViewport(viewport);
+    m_camera->SetViewportSize(math::Vector(10.0f, 7.0f));
 
     SetupIcons(m_context);
 
@@ -151,9 +149,6 @@ void Animator::OnLoad(mono::ICamera* camera)
     sprite_component.sprite_file = m_sprite_file;
     m_sprite = m_sprite_system->AllocateSprite(entity->id, sprite_component);
     m_sprite->SetAnimationPlayback(mono::PlaybackMode::PAUSED);
-
-    math::Matrix& sprite_transform = m_transform_system->GetTransform(entity->id);
-    math::Position(sprite_transform, math::Center(viewport));
 
     SetAnimation(m_sprite->GetActiveAnimation());
 
@@ -295,7 +290,7 @@ void Animator::OnAddAnimation()
 {
     mono::SpriteAnimation new_animation;
     new_animation.name = "new";
-    new_animation.frames.push_back({ 0, 100 });
+    new_animation.frames.push_back(0);
     new_animation.looping = false;
 
     const int animation_id = m_sprite_data->animations.size();
@@ -316,13 +311,13 @@ void Animator::OnDeleteAnimation()
 void Animator::OnAddFrame()
 {
     const int current_id = m_sprite->GetActiveAnimation();
-    m_sprite_data->animations[current_id].frames.push_back({ 0, 100});
+    m_sprite_data->animations[current_id].frames.push_back(0);
 }
 
 void Animator::OnDeleteFrame(int id)
 {
     const int current_id = m_sprite->GetActiveAnimation();
-    std::vector<mono::SpriteAnimation::Frame>& frames = m_sprite_data->animations[current_id].frames;
+    std::vector<int>& frames = m_sprite_data->animations[current_id].frames;
     frames.erase(frames.begin() + id);
 }
 
@@ -347,13 +342,15 @@ void Animator::SetFrameDuration(int new_frame_duration)
 
 void Animator::Zoom(float multiplier)
 {
-    math::Quad quad = m_camera->GetViewport();
+    math::Vector viewport_size = m_camera->GetViewportSize();
 
-    const float resize_value = quad.mB.x * 0.15f * multiplier;
-    const float aspect = quad.mB.x / quad.mB.y;
-    math::ResizeQuad(quad, resize_value, aspect);
+    const float resize_value = viewport_size.x * multiplier * 0.15f;
+    const float aspect = viewport_size.x / viewport_size.y;
 
-    m_camera->SetTargetViewport(quad);
+    viewport_size.x += resize_value * aspect;
+    viewport_size.y += resize_value;
+
+    m_camera->SetTargetViewportSize(viewport_size);
 }
 
 void Animator::SetActiveFrame(int frame)
@@ -362,7 +359,7 @@ void Animator::SetActiveFrame(int frame)
     m_context.selected_frame = frame;
 
     const int active_animation = m_sprite->GetActiveAnimation();
-    const int frame_index = m_sprite_data->animations[active_animation].frames[frame].frame;
+    const int frame_index = m_sprite_data->animations[active_animation].frames[frame];
 
     m_context.frame_offset_pixels.x = m_sprite_data->frames[frame_index].center_offset.x * m_pixels_per_meter;
     m_context.frame_offset_pixels.y = m_sprite_data->frames[frame_index].center_offset.y * m_pixels_per_meter;
@@ -381,7 +378,7 @@ void Animator::SetFrameOffset(const math::Vector& frame_offset_pixels)
 
     const int active_animation = m_sprite->GetActiveAnimation();
     const int active_frame = m_sprite->GetActiveAnimationFrame();
-    const int frame_index = m_sprite_data->animations[active_animation].frames[active_frame].frame;
+    const int frame_index = m_sprite_data->animations[active_animation].frames[active_frame];
     m_sprite_data->frames[frame_index].center_offset = new_frame_offset;
 }
 

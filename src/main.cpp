@@ -4,6 +4,7 @@
 #include "System/UID.h"
 
 #include "SystemContext.h"
+#include "Camera/Camera.h"
 #include "EntitySystem/EntitySystem.h"
 #include "Rendering/RenderSystem.h"
 #include "Rendering/Sprite/SpriteSystem.h"
@@ -57,9 +58,11 @@ int main(int argc, const char* argv[])
         mono::SpriteSystem* sprite_system = system_context.CreateSystem<mono::SpriteSystem>(max_entities, transform_system);
         mono::EntitySystem* entity_system = system_context.CreateSystem<mono::EntitySystem>(max_entities);
 
+        mono::Camera camera;
+        mono::Engine engine(window, &camera, &system_context, &event_handler);
+
         animator::Animator animator(
             transform_system, sprite_system, entity_system, &event_handler, render_params.pixels_per_meter, sprite_file);
-        mono::Engine engine(window, &system_context, &event_handler);
         engine.Run(&animator);
 
         delete window;

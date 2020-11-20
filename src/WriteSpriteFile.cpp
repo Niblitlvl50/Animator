@@ -10,8 +10,7 @@ void animator::WriteSpriteFile(const char* sprite_file, const mono::SpriteData* 
     if(!input_file)
         return;
 
-    std::vector<byte> file_data;
-    file::FileRead(input_file, file_data);
+    const std::vector<byte>& file_data = file::FileRead(input_file);
 
     input_file = nullptr;
 
@@ -21,29 +20,21 @@ void animator::WriteSpriteFile(const char* sprite_file, const mono::SpriteData* 
 
     for(const mono::SpriteAnimation& animation : sprite_data->animations)
     {
-        std::vector<int> values;
-
-        for(const mono::SpriteAnimation::Frame& frame : animation.frames)
-        {
-            values.push_back(frame.frame);
-            values.push_back(frame.duration);
-        }
-
         nlohmann::json object;
         object["name"] = animation.name;
         object["loop"] = animation.looping;
         object["frame_duration"] = animation.frame_duration;
-        object["frames"] = values;
+        object["frames"] = animation.frames;
 
         json_animations.push_back(object);
     }
 
-    nlohmann::json& json_frames = json["frames"];
+    nlohmann::json& json_frame_offsets = json["frames_offsets"];
     for(size_t index = 0; index < sprite_data->frames.size(); ++index)
     {
         const mono::SpriteFrame& frame = sprite_data->frames[index];
-        json_frames[index]["x_offset"] = frame.center_offset.x;
-        json_frames[index]["y_offset"] = frame.center_offset.y;
+        json_frame_offsets[index]["x"] = frame.center_offset.x;
+        json_frame_offsets[index]["y"] = frame.center_offset.y;
     }
 
     const std::string& serialized_sprite = json.dump(4);
