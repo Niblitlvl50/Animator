@@ -138,6 +138,7 @@ void Animator::OnLoad(mono::ICamera* camera)
     m_camera->SetViewportSize(math::Vector(10.0f, 7.0f));
 
     SetupIcons(m_context);
+    mono::SetImGuiConfig(nullptr);
 
     m_sprite_data = const_cast<mono::SpriteData*>(mono::GetSpriteFactory()->GetSpriteDataForFile(m_sprite_file));
     m_context.sprite_data = m_sprite_data;
