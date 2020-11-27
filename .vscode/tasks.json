@@ -9,7 +9,10 @@
             "args": [
                 "-j8"
             ],
-            "type": "shell",
+            "options": {
+                "cwd": "${workspaceRoot}/build"
+            },
+            "type": "process",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -22,6 +25,9 @@
             "args": [
                 "clean"
             ],
+            "options": {
+                "cwd": "${workspaceRoot}/build"
+            },
             "type": "process",
             "problemMatcher": []
         },
@@ -29,8 +35,11 @@
             "label": "cmake",
             "command": "cmake",
             "args": [
-                "."
+                "../"
             ],
+            "options": {
+                "cwd": "${workspaceRoot}/build"
+            },
             "type": "process",
             "problemMatcher": []
         },
