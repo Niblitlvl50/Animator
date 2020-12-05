@@ -396,9 +396,19 @@ void Animator::SetSpeed(float new_speed)
 void Animator::TogglePlaying()
 {
     m_context.animation_playing = !m_context.animation_playing;
+
+    // This is a bunch of bs and can probably be done in a less complex way...
+    const bool animation_done = m_sprite->IsActiveAnimationDone();
+    if(animation_done && !m_context.animation_playing)
+        m_context.animation_playing = true;
+
     const mono::PlaybackMode new_mode =
         m_context.animation_playing ? mono::PlaybackMode::PLAYING : mono::PlaybackMode::PAUSED;
+
     m_sprite->SetAnimationPlayback(new_mode);
+
+    if(animation_done && new_mode == mono::PlaybackMode::PLAYING)
+        m_sprite->RestartAnimation();
 }
 
 void Animator::ToggleOffsetMode()
