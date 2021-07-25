@@ -26,7 +26,8 @@
 #include "Rendering/Sprite/SpriteBatchDrawer.h"
 #include "TransformSystem/TransformSystem.h"
 
-#include "Rendering/ImGui.h"
+#include "Rendering/RenderSystem.h"
+#include "Rendering/IRenderer.h"
 #include "Rendering/Texture/ITexture.h"
 #include "Rendering/Texture/ITextureFactory.h"
 #include "WriteSpriteFile.h"
@@ -43,13 +44,12 @@ using namespace animator;
 
 namespace
 {
-    void SetupIcons(UIContext& context)
+    mono::ITexturePtr SetupIcons(UIContext& context)
     {
         const mono::ITextureFactory* texture_factory = mono::GetTextureFactory();
 
         mono::ITexturePtr texture =
             texture_factory->CreateTextureFromData(animator_sprite_atlas_data, animator_sprite_atlas_data_length, "res/animator_sprite_atlas.png");
-        mono::LoadImGuiTexture(texture);
 
         const mono::ISpriteFactory* sprite_factory = mono::GetSpriteFactory();
 
@@ -59,10 +59,12 @@ namespace
         const mono::ISpritePtr save = sprite_factory->CreateSpriteFromRaw(save_data);
 
         context.tools_texture_id = texture->Id();
-        context.save_icon = save->GetCurrentFrame().texture_coordinates;
-        context.add_icon = add->GetCurrentFrame().texture_coordinates;
-        context.plus_icon = plus->GetCurrentFrame().texture_coordinates;
-        context.delete_icon = del->GetCurrentFrame().texture_coordinates;
+        context.save_icon = math::Quad(save->GetCurrentFrame().uv_upper_left, save->GetCurrentFrame().uv_lower_right);
+        context.add_icon = math::Quad(add->GetCurrentFrame().uv_lower_right, add->GetCurrentFrame().uv_upper_left);
+        context.plus_icon = math::Quad(plus->GetCurrentFrame().uv_lower_right, plus->GetCurrentFrame().uv_upper_left);
+        context.delete_icon = math::Quad(del->GetCurrentFrame().uv_lower_right, del->GetCurrentFrame().uv_upper_left);
+
+        return texture;
     }
 
     class ActiveFrameUpdater : public mono::IUpdatable
@@ -132,13 +134,14 @@ Animator::~Animator()
     m_event_handler->RemoveListener(m_multi_gesture_token);
 }
 
-void Animator::OnLoad(mono::ICamera* camera)
+void Animator::OnLoad(mono::ICamera* camera, mono::IRenderer* renderer)
 {
+    (void)renderer;
+
     m_camera = camera;
     m_camera->SetViewportSize(math::Vector(10.0f, 7.0f));
 
-    SetupIcons(m_context);
-    mono::SetImGuiConfig(nullptr);
+    m_tools_texture = SetupIcons(m_context);
 
     m_sprite_data = const_cast<mono::SpriteData*>(mono::GetSpriteFactory()->GetSpriteDataForFile(m_sprite_file));
     m_context.sprite_data = m_sprite_data;
@@ -150,6 +153,8 @@ void Animator::OnLoad(mono::ICamera* camera)
     sprite_component.sprite_file = m_sprite_file;
     m_sprite = m_sprite_system->AllocateSprite(entity->id, sprite_component);
     m_sprite->SetAnimationPlayback(mono::PlaybackMode::PAUSED);
+
+    m_sprite_batch_drawer = new mono::SpriteBatchDrawer(m_transform_system, m_sprite_system);
 
     SetAnimation(m_sprite->GetActiveAnimation());
 
@@ -164,11 +169,10 @@ void Animator::OnLoad(mono::ICamera* camera)
     m_mouse_wheel_token = m_event_handler->AddListener(mouse_wheel);
     m_multi_gesture_token = m_event_handler->AddListener(multi_gesture);
 
-    AddDrawable(new mono::SpriteBatchDrawer(m_transform_system, m_sprite_system), 0);
-    AddDrawable(new SpriteOffsetDrawer(m_transform_system, m_sprite_data, entity->id, m_context.offset_mode), 0);
-
     AddUpdatable(new ActiveFrameUpdater(m_sprite, m_context));
-    AddUpdatable(new InterfaceDrawer(m_context));
+    AddDrawable(m_sprite_batch_drawer, 0);
+    AddDrawable(new SpriteOffsetDrawer(m_transform_system, m_sprite_data, entity->id, m_context.offset_mode), 0);
+    AddDrawable(new InterfaceDrawer(m_context), 1);
 }
 
 int Animator::OnUnload()
@@ -299,6 +303,8 @@ void Animator::OnAddAnimation()
 
     SetAnimation(animation_id);
     m_sprite->RestartAnimation();
+
+    m_sprite_batch_drawer->ReloadSpriteData(m_sprite_data->hash);
 }
 
 void Animator::OnDeleteAnimation()
@@ -307,12 +313,16 @@ void Animator::OnDeleteAnimation()
     m_sprite_data->animations.erase(m_sprite_data->animations.begin() + active_animation);
     if(active_animation >= static_cast<int>(m_sprite_data->animations.size()))
         SetAnimation(active_animation -1);
+
+    m_sprite_batch_drawer->ReloadSpriteData(m_sprite_data->hash);
 }
 
 void Animator::OnAddFrame()
 {
     const int current_id = m_sprite->GetActiveAnimation();
     m_sprite_data->animations[current_id].frames.push_back(0);
+
+    m_sprite_batch_drawer->ReloadSpriteData(m_sprite_data->hash);
 }
 
 void Animator::OnDeleteFrame(int id)
@@ -320,6 +330,8 @@ void Animator::OnDeleteFrame(int id)
     const int current_id = m_sprite->GetActiveAnimation();
     std::vector<int>& frames = m_sprite_data->animations[current_id].frames;
     frames.erase(frames.begin() + id);
+
+    m_sprite_batch_drawer->ReloadSpriteData(m_sprite_data->hash);
 }
 
 void Animator::OnNameAnimation(const char* new_name)
@@ -381,6 +393,8 @@ void Animator::SetFrameOffset(const math::Vector& frame_offset_pixels)
     const int active_frame = m_sprite->GetActiveAnimationFrame();
     const int frame_index = m_sprite_data->animations[active_animation].frames[active_frame];
     m_sprite_data->frames[frame_index].center_offset = new_frame_offset;
+
+    m_sprite_batch_drawer->ReloadSpriteData(m_sprite_data->hash);
 }
 
 void Animator::SaveSprite()

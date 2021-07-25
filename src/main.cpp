@@ -1,7 +1,6 @@
 
 #include "System/System.h"
 #include "System/File.h"
-#include "System/UID.h"
 
 #include "SystemContext.h"
 #include "Camera/Camera.h"
@@ -41,22 +40,22 @@ int main(int argc, const char* argv[])
     System::InitializeContext init_context;
     init_context.working_directory = ".";
     System::Initialize(init_context);
-    System::SetUIDOffset(max_entities +1);
-
-    mono::RenderInitParams render_params;
-    mono::InitializeRender(render_params);
 
     {
-        mono::EventHandler event_handler;
-        System::IWindow* window = System::CreateWindow("Animator", 0, 0, 1200, 800, System::WindowOptions::NONE);
+        System::IWindow* window = System::MakeWindow("Animator", 0, 0, 1200, 800, System::WindowOptions::NONE);
+
+        mono::RenderInitParams render_params;
+        render_params.window = window;
+        mono::InitializeRender(render_params);
 
         mono::LoadFontRaw(0, pixelette_data, pixelette_data_length, 48.0f, 0.01f);
         mono::LoadFontRaw(1, pixelette_data, pixelette_data_length, 48.0f, 0.05f);
 
+        mono::EventHandler event_handler;
         mono::SystemContext system_context;
         mono::TransformSystem* transform_system = system_context.CreateSystem<mono::TransformSystem>(max_entities);
         mono::SpriteSystem* sprite_system = system_context.CreateSystem<mono::SpriteSystem>(max_entities, transform_system);
-        mono::EntitySystem* entity_system = system_context.CreateSystem<mono::EntitySystem>(max_entities);
+        mono::EntitySystem* entity_system = system_context.CreateSystem<mono::EntitySystem>(max_entities, &system_context, nullptr, nullptr);
 
         mono::Camera camera;
         mono::Engine engine(window, &camera, &system_context, &event_handler);

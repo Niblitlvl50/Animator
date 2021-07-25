@@ -63,8 +63,8 @@ namespace
         const int window_x = window_size.x - window_width;
 
         //const ImageCoords& delete_icon = QuadToImageCoords(context.delete_icon);
-        const ImageCoords& plus_icon = QuadToImageCoords(context.plus_icon);
-        const ImageCoords& save_icon = QuadToImageCoords(context.save_icon);
+        const ImageCoords& plus_icon = QuadToImageCoords(context.plus_icon.mA, context.plus_icon.mB);
+        const ImageCoords& save_icon = QuadToImageCoords(context.save_icon.mA, context.save_icon.mB);
 
         const ImVec4 bg_color(1.0f, 1.0f, 1.0f, 1.0f);
         const ImVec2 small_button_size(22, 22);
@@ -227,8 +227,8 @@ namespace
         }
         else
         {
-            const bool x_changed = ImGui::InputFloat("x", &context.frame_offset_pixels.x, 0.5f, 1.0f, 1);
-            const bool y_changed = ImGui::InputFloat("y", &context.frame_offset_pixels.y, 0.5f, 1.0f, 1);
+            const bool x_changed = ImGui::InputFloat("x", &context.frame_offset_pixels.x, 0.5f, 1.0f);
+            const bool y_changed = ImGui::InputFloat("y", &context.frame_offset_pixels.y, 0.5f, 1.0f);
             if(x_changed || y_changed)
                 context.set_frame_offset(context.frame_offset_pixels);
         }
@@ -240,16 +240,18 @@ InterfaceDrawer::InterfaceDrawer(UIContext& context)
     : m_context(context)
 { }
 
-void InterfaceDrawer::Update(const mono::UpdateContext& update_context)
+void InterfaceDrawer::Draw(mono::IRenderer& renderer) const
 {
-    ImGui::GetIO().DeltaTime = float(update_context.delta_ms) / 1000.0f;
-    ImGui::NewFrame();
+    (void)renderer;
 
     DrawOverlayToolbar(m_context);
     DrawAnimationWindow(m_context);
     DrawOffsetWindow(m_context);
 
     //ImGui::ShowDemoWindow();
+}
 
-    ImGui::Render();
+math::Quad InterfaceDrawer::BoundingBox() const
+{
+    return math::InfQuad;
 }

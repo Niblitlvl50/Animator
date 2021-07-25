@@ -1,13 +1,15 @@
 
 #pragma once
 
-#include "System/System.h"
 #include "MonoFwd.h"
+#include "System/System.h"
 #include "Zone/ZoneBase.h"
 #include "EventHandler/EventToken.h"
 #include "Events/EventFwd.h"
 #include "UIContext.h"
 
+#include "Rendering/RenderFwd.h"
+#include "Rendering/Texture/ITextureFactory.h"
 #include "ImGuiImpl/ImGuiInputHandler.h"
 
 #include <memory>
@@ -27,7 +29,7 @@ namespace animator
             const char* sprite_file);
         ~Animator();
 
-        void OnLoad(mono::ICamera* camera) override;
+        void OnLoad(mono::ICamera* camera, mono::IRenderer* renderer) override;
         int OnUnload() override;
 
         mono::EventResult OnKeyDownUp(const event::KeyDownEvent& event);
@@ -73,7 +75,10 @@ namespace animator
         UIContext m_context;
 
         mono::ICamera* m_camera;
+        mono::ITexturePtr m_tools_texture;
+
         mono::SpriteData* m_sprite_data;
         mono::ISprite* m_sprite;
+        mono::SpriteBatchDrawer* m_sprite_batch_drawer;
     };
 }

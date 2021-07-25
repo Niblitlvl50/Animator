@@ -1,16 +1,18 @@
 
 #pragma once
 
-#include "IUpdatable.h"
+#include "Rendering/IDrawable.h"
 
 namespace animator
 {
-    class InterfaceDrawer : public mono::IUpdatable
+    class InterfaceDrawer : public mono::IDrawable
     {
     public:
 
         InterfaceDrawer(struct UIContext& context);
-        void Update(const mono::UpdateContext& update_context) override;
+        void Draw(mono::IRenderer& renderer) const override;
+        math::Quad BoundingBox() const override;
+
         struct UIContext& m_context;
     };
 }
