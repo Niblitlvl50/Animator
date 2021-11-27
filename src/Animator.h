@@ -47,7 +47,7 @@ namespace animator
         void OnAddFrame();
         void OnDeleteFrame(int id);
         void SetActiveFrame(int frame);
-        void SetAnimationFrame(int animation_frame_index, int frame);
+        void SetAnimationFrame(int animation_frame_index, int new_frame);
         void SetFrameOffset(const math::Vector& frame_offset_pixels);
 
         void SaveSprite();

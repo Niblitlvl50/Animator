@@ -31,6 +31,9 @@
         "string_view": "cpp",
         "unordered_map": "cpp",
         "utility": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "cstdint": "cpp",
+        "__locale": "cpp",
+        "algorithm": "cpp"
     }
 }

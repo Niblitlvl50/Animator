@@ -378,11 +378,10 @@ void Animator::SetActiveFrame(int frame)
     m_context.frame_offset_pixels.y = m_sprite_data->frames[frame_index].center_offset.y * m_pixels_per_meter;
 }
 
-void Animator::SetAnimationFrame(int animation_frame_index, int frame)
+void Animator::SetAnimationFrame(int animation_frame_index, int new_frame)
 {
-    (void)animation_frame_index;
-    m_context.frame_offset_pixels.x = m_sprite_data->frames[frame].center_offset.x * m_pixels_per_meter;
-    m_context.frame_offset_pixels.y = m_sprite_data->frames[frame].center_offset.y * m_pixels_per_meter;
+    const int active_animation = m_sprite->GetActiveAnimation();
+    m_sprite_data->animations[active_animation].frames[animation_frame_index] = new_frame;
 }
 
 void Animator::SetFrameOffset(const math::Vector& frame_offset_pixels)
