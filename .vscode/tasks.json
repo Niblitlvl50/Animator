@@ -58,7 +58,7 @@
         },
         {
             "label": "deploy",
-            "command": "python",
+            "command": "python3",
             "args": [
                 "scripts/deploy.py"
             ],

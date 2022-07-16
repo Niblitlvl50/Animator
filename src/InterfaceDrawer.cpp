@@ -63,8 +63,8 @@ namespace
         const int window_x = window_size.x - window_width;
 
         //const ImageCoords& delete_icon = QuadToImageCoords(context.delete_icon);
-        const ImageCoords& plus_icon = QuadToImageCoords(context.plus_icon.mA, context.plus_icon.mB);
-        const ImageCoords& save_icon = QuadToImageCoords(context.save_icon.mA, context.save_icon.mB);
+        const ImageCoords& plus_icon = QuadToImageCoords(math::TopLeft(context.plus_icon), math::BottomRight(context.plus_icon));
+        const ImageCoords& save_icon = QuadToImageCoords(math::TopLeft(context.save_icon), math::BottomRight(context.save_icon));
 
         const ImVec4 bg_color(1.0f, 1.0f, 1.0f, 1.0f);
         const ImVec2 small_button_size(22, 22);

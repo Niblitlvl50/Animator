@@ -147,7 +147,7 @@ void Animator::OnLoad(mono::ICamera* camera, mono::IRenderer* renderer)
     m_context.sprite_data = m_sprite_data;
     m_context.animation_playing = false;
 
-    mono::Entity* entity = m_entity_system->AllocateEntity();
+    mono::Entity* entity = m_entity_system->AllocateEntity("animator");
 
     mono::SpriteComponents sprite_component;
     sprite_component.sprite_file = m_sprite_file;
@@ -208,23 +208,42 @@ mono::EventResult Animator::OnKeyDownUp(const event::KeyDownEvent& event)
         case Keycode::LEFT:
         case Keycode::RIGHT:
         {
-            const int add_value = (event.key == Keycode::LEFT) ? -1 : +1;
-            const int id = m_sprite->GetActiveAnimation() + add_value;
-            animation = std::clamp(id, 0, (int)m_sprite_data->animations.size() -1);
+            if(event.alt)
+            {
+                const float add_value = (event.key == Keycode::LEFT) ? -0.5f : +0.5f;
+                m_context.frame_offset_pixels.x += add_value;
+                SetFrameOffset(m_context.frame_offset_pixels);
+            }
+            else
+            {
+                const int add_value = (event.key == Keycode::LEFT) ? -1 : +1;
+                const int id = m_sprite->GetActiveAnimation() + add_value;
+                animation = std::clamp(id, 0, (int)m_sprite_data->animations.size() -1);
+            }
+
             break;
         }
         case Keycode::UP:
         case Keycode::DOWN:
         {
-            const int add_value = (event.key == Keycode::UP) ? -1 : +1;
-            const int new_active_frame = m_sprite->GetActiveAnimationFrame() + add_value;
+            if(event.alt)
+            {
+                const float add_value = (event.key == Keycode::UP) ? +0.5f : -0.5f;
+                m_context.frame_offset_pixels.y += add_value;
+                SetFrameOffset(m_context.frame_offset_pixels);
+            }
+            else
+            {
+                const int add_value = (event.key == Keycode::UP) ? -1 : +1;
+                const int new_active_frame = m_sprite->GetActiveAnimationFrame() + add_value;
 
-            const mono::SpriteAnimation& animation = m_sprite_data->animations[m_sprite->GetActiveAnimation()];
-            const int frame = std::clamp(new_active_frame, 0, (int)animation.frames.size() -1);
-            SetActiveFrame(frame);
+                const mono::SpriteAnimation& animation = m_sprite_data->animations[m_sprite->GetActiveAnimation()];
+                const int frame = std::clamp(new_active_frame, 0, (int)animation.frames.size() -1);
+                SetActiveFrame(frame);
 
-            m_sprite->SetAnimationPlayback(mono::PlaybackMode::PAUSED);
-            m_context.animation_playing = false;
+                m_sprite->SetAnimationPlayback(mono::PlaybackMode::PAUSED);
+                m_context.animation_playing = false;
+            }
 
             return mono::EventResult::HANDLED;
         }
@@ -374,8 +393,7 @@ void Animator::SetActiveFrame(int frame)
     const int active_animation = m_sprite->GetActiveAnimation();
     const int frame_index = m_sprite_data->animations[active_animation].frames[frame];
 
-    m_context.frame_offset_pixels.x = m_sprite_data->frames[frame_index].center_offset.x * m_pixels_per_meter;
-    m_context.frame_offset_pixels.y = m_sprite_data->frames[frame_index].center_offset.y * m_pixels_per_meter;
+    m_context.frame_offset_pixels = m_sprite_data->frames[frame_index].center_offset * m_pixels_per_meter;
 }
 
 void Animator::SetAnimationFrame(int animation_frame_index, int new_frame)
