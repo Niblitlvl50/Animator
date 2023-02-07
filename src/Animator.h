@@ -23,6 +23,7 @@ namespace animator
         Animator(
             mono::TransformSystem* transform_system,
             mono::SpriteSystem* sprite_system,
+            mono::RenderSystem* render_system,
             mono::EntitySystem* entity_system,
             mono::EventHandler* event_handler,
             float pixels_per_meter,
@@ -61,6 +62,7 @@ namespace animator
 
         mono::TransformSystem* m_transform_system;
         mono::SpriteSystem* m_sprite_system;
+        mono::RenderSystem* m_render_system;
         mono::EntitySystem* m_entity_system;
         mono::EventHandler* m_event_handler;
         const float m_pixels_per_meter;

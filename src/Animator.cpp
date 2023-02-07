@@ -46,12 +46,12 @@ namespace
 {
     mono::ITexturePtr SetupIcons(UIContext& context)
     {
-        const mono::ITextureFactory* texture_factory = mono::GetTextureFactory();
+        const mono::ITextureFactory* texture_factory = mono::RenderSystem::GetTextureFactory();
 
         mono::ITexturePtr texture =
             texture_factory->CreateTextureFromData(animator_sprite_atlas_data, animator_sprite_atlas_data_length, "res/animator_sprite_atlas.png");
 
-        const mono::ISpriteFactory* sprite_factory = mono::GetSpriteFactory();
+        const mono::ISpriteFactory* sprite_factory = mono::RenderSystem::GetSpriteFactory();
 
         const mono::ISpritePtr add = sprite_factory->CreateSpriteFromRaw(add_data);
         const mono::ISpritePtr del = sprite_factory->CreateSpriteFromRaw(delete_data);
@@ -90,12 +90,14 @@ namespace
 Animator::Animator(
     mono::TransformSystem* transform_system,
     mono::SpriteSystem* sprite_system,
+    mono::RenderSystem* render_system,
     mono::EntitySystem* entity_system,
     mono::EventHandler* event_handler,
     float pixels_per_meter,
     const char* sprite_file)
     : m_transform_system(transform_system)
     , m_sprite_system(sprite_system)
+    , m_render_system(render_system)
     , m_entity_system(entity_system)
     , m_event_handler(event_handler)
     , m_pixels_per_meter(pixels_per_meter)
@@ -143,7 +145,7 @@ void Animator::OnLoad(mono::ICamera* camera, mono::IRenderer* renderer)
 
     m_tools_texture = SetupIcons(m_context);
 
-    m_sprite_data = const_cast<mono::SpriteData*>(mono::GetSpriteFactory()->GetSpriteDataForFile(m_sprite_file));
+    m_sprite_data = const_cast<mono::SpriteData*>(mono::RenderSystem::GetSpriteFactory()->GetSpriteDataForFile(m_sprite_file));
     m_context.sprite_data = m_sprite_data;
     m_context.animation_playing = false;
 
@@ -154,7 +156,7 @@ void Animator::OnLoad(mono::ICamera* camera, mono::IRenderer* renderer)
     m_sprite = m_sprite_system->AllocateSprite(entity->id, sprite_component);
     m_sprite->SetAnimationPlayback(mono::PlaybackMode::PAUSED);
 
-    m_sprite_batch_drawer = new mono::SpriteBatchDrawer(m_transform_system, m_sprite_system);
+    m_sprite_batch_drawer = new mono::SpriteBatchDrawer(m_transform_system, m_sprite_system, m_render_system);
 
     SetAnimation(m_sprite->GetActiveAnimation());
 
